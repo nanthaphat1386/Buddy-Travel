@@ -66,7 +66,12 @@ flutter:
   assets:
     - assets/img/logo_project.png  #โลโก้
     - assets/img/accountIcon.jpg  #รูปแอคเคาท์
-
+  fonts:
+    - family: Urbanist
+      fonts:
+        - asset: assets/fonts/urbanist/Urbanist-Regular.ttf
+        - asset: assets/fonts/urbanist/Urbanist-Bold.ttf
+          weight: 700
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

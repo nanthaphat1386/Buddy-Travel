@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:projectbdtravel/API/apiPlace.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
+import 'package:projectbdtravel/Tools/style.tools.dart';
 
 class AddPlace extends StatefulWidget {
   const AddPlace({super.key});
@@ -13,8 +14,18 @@ class AddPlace extends StatefulWidget {
 class _AddPlaceState extends State<AddPlace> {
   List<String> auto_type = [];
   List<String> auto_fes = [];
+  List<String> allProvince = [];
   String str_type = '';
   String str_fes = '';
+
+  Color purpleBorder = HexColor('#9C9AFC');
+  Color blackBorder = Colors.black26;
+
+  String dropdownValue = '';
+
+  TextEditingController name_Place = new TextEditingController();
+  TextEditingController description_Place = new TextEditingController();
+  TextEditingController address_Place = new TextEditingController();
 
   @override
   void initState() {
@@ -22,17 +33,34 @@ class _AddPlaceState extends State<AddPlace> {
     super.initState();
     List_Type();
     List_Festival();
+    List_Province();
   }
 
   // ignore: non_constant_identifier_names
   Future List_Type() async {
-    auto_type = await ListType();
+    var data = await ListType();
+    setState(() {
+      auto_type = data;
+    });
+
     return auto_type;
   }
 
   Future List_Festival() async {
-    auto_fes = await ListFestival();
+    var data = await ListFestival();
+    setState(() {
+      auto_fes = data;
+    });
     return auto_fes;
+  }
+
+  Future List_Province() async {
+    var data = await getProvince();
+    setState(() {
+      allProvince = data;
+    });
+
+    return allProvince;
   }
 
   Future<void> _showNotiDialog(
@@ -113,12 +141,10 @@ class _AddPlaceState extends State<AddPlace> {
             focusNode: fieldFocusNode,
             decoration: InputDecoration(
               enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                      width: 1, color: Color.fromARGB(122, 116, 63, 238)),
+                  borderSide: BorderSide(width: 1, color: purpleBorder),
                   borderRadius: BorderRadius.circular(15)),
               focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                      width: 1, color: Color.fromARGB(122, 116, 63, 238)),
+                  borderSide: BorderSide(width: 1, color: purpleBorder),
                   borderRadius: BorderRadius.circular(15)),
               hintText: header == 'type' ? 'ประเภทสถานที่' : 'เทศกาล',
               suffixIcon: Icon(Icons.search),
@@ -237,52 +263,410 @@ class _AddPlaceState extends State<AddPlace> {
           ));
     }
 
-    Container Place_Page() {
-      return Container(
-          width: w * 1,
-          height: h * 1,
-          child: DefaultTabController(
-            length: 2,
-            initialIndex: 0,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Container(
-                  color: Colors.transparent,
-                  child: TabBar(
-                    labelColor: Colors.blueAccent,
-                    unselectedLabelColor: Colors.black,
-                    tabs: [
-                      Tab(text: 'กรอกด้วยตัวเอง'),
-                      Tab(text: 'ค้นหาด้วย Google'),
-                    ],
+    Padding myTextField(String str, TextEditingController text) {
+      return Padding(
+          padding: EdgeInsets.fromLTRB(0, h * 0.01, 0, h * 0.01),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(str, style: styleText.styleHeaderPlace),
+              SizedBox(
+                width: w * 1,
+                height: h * 0.2,
+                child: TextField(
+                  controller: text,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 1, color: purpleBorder),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 1, color: purpleBorder),
+                    ),
                   ),
                 ),
-                Container(
-                    width: w,
-                    height: h * 1.95, //height of TabBarView
-                    padding: EdgeInsets.only(top: 5),
-                    child: TabBarView(children: <Widget>[
-                      Container(
-                          color: Colors.amberAccent,
-                          child: ListView(
-                            children: [
-                              Center(
-                                child: Text('1111111111111'),
-                              ),
-                            ],
-                          )),
-                       Container(
-                          color: Colors.amberAccent,
-                          child: ListView(
-                            children: [
-                              Center(
-                                child: Text('2222222222222'),
-                              ),
-                            ],
-                          )),
-                    ]))
-              ],
+              ),
+            ],
+          ));
+    }
+
+    Container dropdownMenu(List<String> header, String head) {
+      return Container(
+          width: w * 0.4,
+          height: h * 0.3,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(head, style: styleText.styleHeaderPlace),
+              DropdownMenu<String>(
+                width: w * 0.4,
+                menuHeight: h * 0.5,
+                initialSelection: '',
+                onSelected: (String? value) {
+                  // This is called when the user selects an item.
+                  setState(() {
+                    dropdownValue = value!;
+                  });
+                },
+                inputDecorationTheme: InputDecorationTheme(
+                  enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 1, color: purpleBorder)),
+                ),
+                dropdownMenuEntries:
+                    header.map<DropdownMenuEntry<String>>((String value) {
+                  return DropdownMenuEntry<String>(
+                    value: value,
+                    label: value,
+                  );
+                }).toList(),
+              ),
+            ],
+          ));
+    }
+
+    Padding myTextFieldWidthMax(
+        String str, TextEditingController text, double size_h, int maxLine) {
+      return Padding(
+          padding: EdgeInsets.fromLTRB(0, h * 0.02, 0, h * 0.02),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                str,
+                style: styleText.styleHeaderPlace,
+              ),
+              SizedBox(
+                width: w * 1,
+                height: h * size_h,
+                child: TextField(
+                  maxLines: maxLine,
+                  controller: text,
+                  decoration: InputDecoration(
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                    filled: true,
+                    fillColor: Colors.white,
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 1, color: purpleBorder),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 1, color: purpleBorder),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ));
+    }
+
+    Padding myTextFieldWidthMid(
+        String str, TextEditingController text, bool status) {
+      return Padding(
+          padding: EdgeInsets.fromLTRB(0, h * 0.01, 0, h * 0.01),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                str,
+                style: styleText.styleHeaderPlace,
+              ),
+              SizedBox(
+                width: w * 0.4,
+                height: h * 0.195,
+                child: TextField(
+                  maxLines: 1,
+                  controller: text,
+                  enabled: status,
+                  decoration: InputDecoration(
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                    filled: true,
+                    fillColor: Colors.white,
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 1, color: purpleBorder),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 1, color: purpleBorder),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ));
+    }
+
+    Container emptyBoxShow() {
+      return Container(
+        width: w * 0.4,
+        height: h * 0.4,
+        decoration:
+            BoxDecoration(border: Border.all(width: 1, color: purpleBorder)),
+        child: ListView(
+          padding: EdgeInsets.all(5),
+          children: [
+            for (int i = 0; i < 15; i++) Text('sss'),
+          ],
+        ),
+      );
+    }
+
+    Container Place_Page() {
+      return Container(
+        color: Color.fromARGB(150, 214, 214, 214),
+          width: w * 1,
+          height: h * 1,
+          child: SingleChildScrollView(
+            child: DefaultTabController(
+              length: 2,
+              initialIndex: 0,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Container(
+                    color: Colors.transparent,
+                    child: TabBar(
+                      labelColor: Colors.blueAccent,
+                      unselectedLabelColor: Colors.black,
+                      tabs: [
+                        Tab(text: 'กรอกด้วยตัวเอง'),
+                        Tab(text: 'ค้นหาด้วย Google'),
+                      ],
+                    ),
+                  ),
+                  Container(
+                      width: w,
+                      height: h * 1.95, //height of TabBarView
+                      padding: EdgeInsets.only(top: 5),
+                      child: TabBarView(children: <Widget>[
+                        Container(
+                            padding: EdgeInsets.all(10),
+                            child: ListView(
+                              children: [
+                                myTextField('ชื่อสถานที่', name_Place),
+                                Container(
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      dropdownMenu(auto_type, 'ประเภทสถานที่'),
+                                      dropdownMenu(auto_fes, 'เทศกาล'),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      emptyBoxShow(),
+                                      emptyBoxShow(),
+                                    ],
+                                  ),
+                                ),
+                                myTextFieldWidthMax(
+                                    'ข้อความอธิบาย', description_Place, 0.4, 5),
+                                myTextFieldWidthMax(
+                                    'ที่อยู่', address_Place, 0.2, 2),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    dropdownMenu(allProvince, 'จังหวัด'),
+                                    myTextFieldWidthMid(
+                                        'รหัสไปรษณีย์', address_Place, true),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    ElevatedButton(
+                                        style: ButtonStyle(
+                                            backgroundColor:
+                                                MaterialStatePropertyAll(
+                                                    HexColor('#9C9AFC'))),
+                                        onPressed: () {},
+                                        child: Text(
+                                          'เพิ่มรูปภาพ',
+                                          style:
+                                              TextStyle(fontFamily: 'Urbanist'),
+                                        )),
+                                    Container(
+                                      width: w * 0.6,
+                                      height: h * 0.5,
+                                      decoration: BoxDecoration(
+                                          border: Border.all(
+                                              width: 1, color: purpleBorder)),
+                                    )
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                        width: w * 0.5,
+                                        height: h * 0.145,
+                                        child: ElevatedButton(
+                                          style: ButtonStyle(
+                                              backgroundColor:
+                                                  MaterialStatePropertyAll(
+                                                      purpleBorder)),
+                                          child: Text('เลือกสถานที่'),
+                                          onPressed: () {},
+                                        ))
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    myTextFieldWidthMid(
+                                        'ละติจูด', address_Place,false),
+                                    myTextFieldWidthMid(
+                                        'ลองติจูด', address_Place,false),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 15,
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                        width: w * 0.5,
+                                        height: h * 0.145,
+                                        child: ElevatedButton(
+                                          style: ButtonStyle(
+                                              backgroundColor:
+                                                  MaterialStatePropertyAll(
+                                                      purpleBorder)),
+                                          child: Text('เพิ่มสถานที่ท่องเที่ยว'),
+                                          onPressed: () {},
+                                        ))
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                              ],
+                            )),
+                        Container(
+                            padding: EdgeInsets.all(10),
+                            child: ListView(
+                              children: [
+                                myTextField('ชื่อสถานที่', name_Place),
+                                Container(
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      dropdownMenu(auto_type, 'ประเภทสถานที่'),
+                                      dropdownMenu(auto_fes, 'เทศกาล'),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      emptyBoxShow(),
+                                      emptyBoxShow(),
+                                    ],
+                                  ),
+                                ),
+                                myTextFieldWidthMax(
+                                    'ข้อความอธิบาย', description_Place, 0.4, 5),
+                                myTextFieldWidthMax(
+                                    'ที่อยู่', address_Place, 0.2, 2),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    dropdownMenu(allProvince, 'จังหวัด'),
+                                    myTextFieldWidthMid(
+                                        'รหัสไปรษณีย์', address_Place,false),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    ElevatedButton(
+                                        style: ButtonStyle(
+                                            backgroundColor:
+                                                MaterialStatePropertyAll(
+                                                    HexColor('#9C9AFC'))),
+                                        onPressed: () {},
+                                        child: Text(
+                                          'เพิ่มรูปภาพ',
+                                          style:
+                                              TextStyle(fontFamily: 'Urbanist'),
+                                        )),
+                                    Container(
+                                      width: w * 0.6,
+                                      height: h * 0.5,
+                                      decoration: BoxDecoration(
+                                          border: Border.all(
+                                              width: 1, color: purpleBorder)),
+                                    )
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    myTextFieldWidthMid(
+                                        'ละติจูด', address_Place,false),
+                                    myTextFieldWidthMid(
+                                        'ลองติจูด', address_Place, false),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 15,
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                        width: w * 0.5,
+                                        height: h * 0.145,
+                                        child: ElevatedButton(
+                                          style: ButtonStyle(
+                                              backgroundColor:
+                                                  MaterialStatePropertyAll(
+                                                      purpleBorder)),
+                                          child: Text('เพิ่มสถานที่ท่องเที่ยว'),
+                                          onPressed: () {},
+                                        ))
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                              ],
+                            )),
+                      ]))
+                ],
+              ),
             ),
           ));
     }
