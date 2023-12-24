@@ -105,10 +105,10 @@ Future<List<String>> getProvince() async {
   var response = await http.get(url);
   // ignore: prefer_typing_uninitialized_variables
   var data;
-  List<String> list=[];
+  List<String> list = [];
   try {
     data = jsonDecode(response.body);
-    for (int i=0;i<data.length;i++){
+    for (int i = 0; i < data.length; i++) {
       list.add(data[i]['name_th']);
     }
   } catch (e) {

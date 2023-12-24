@@ -22,6 +22,8 @@ class _AddPlaceState extends State<AddPlace> {
   Color blackBorder = Colors.black26;
 
   String dropdownValue = '';
+  List selects_type = [];
+  List selects_fes = [];
 
   TextEditingController name_Place = new TextEditingController();
   TextEditingController description_Place = new TextEditingController();
@@ -277,7 +279,6 @@ class _AddPlaceState extends State<AddPlace> {
                   controller: text,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Colors.white,
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(width: 1, color: purpleBorder),
                     ),
@@ -291,7 +292,7 @@ class _AddPlaceState extends State<AddPlace> {
           ));
     }
 
-    Container dropdownMenu(List<String> header, String head) {
+    Container dropdownMenu(List<String> header, String head, String str) {
       return Container(
           width: w * 0.4,
           height: h * 0.3,
@@ -307,6 +308,11 @@ class _AddPlaceState extends State<AddPlace> {
                   // This is called when the user selects an item.
                   setState(() {
                     dropdownValue = value!;
+                    str == 'type'
+                        ? selects_type.add(dropdownValue)
+                        : str == 'festival'
+                            ? selects_fes.add(dropdownValue)
+                            : null;
                   });
                 },
                 inputDecorationTheme: InputDecorationTheme(
@@ -346,7 +352,6 @@ class _AddPlaceState extends State<AddPlace> {
                     contentPadding:
                         EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                     filled: true,
-                    fillColor: Colors.white,
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(width: 1, color: purpleBorder),
                     ),
@@ -382,7 +387,6 @@ class _AddPlaceState extends State<AddPlace> {
                     contentPadding:
                         EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                     filled: true,
-                    fillColor: Colors.white,
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(width: 1, color: purpleBorder),
                     ),
@@ -396,7 +400,7 @@ class _AddPlaceState extends State<AddPlace> {
           ));
     }
 
-    Container emptyBoxShow() {
+    Container emptyBoxShow(List enter) {
       return Container(
         width: w * 0.4,
         height: h * 0.4,
@@ -405,7 +409,7 @@ class _AddPlaceState extends State<AddPlace> {
         child: ListView(
           padding: EdgeInsets.all(5),
           children: [
-            for (int i = 0; i < 15; i++) Text('sss'),
+            for (int i = 0; i < enter.length; i++) Text(enter[i]),
           ],
         ),
       );
@@ -413,7 +417,7 @@ class _AddPlaceState extends State<AddPlace> {
 
     Container Place_Page() {
       return Container(
-        color: Color.fromARGB(150, 214, 214, 214),
+          color: Color.fromARGB(20, 214, 214, 214),
           width: w * 1,
           height: h * 1,
           child: SingleChildScrollView(
@@ -449,8 +453,10 @@ class _AddPlaceState extends State<AddPlace> {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      dropdownMenu(auto_type, 'ประเภทสถานที่'),
-                                      dropdownMenu(auto_fes, 'เทศกาล'),
+                                      dropdownMenu(
+                                          auto_type, 'ประเภทสถานที่', 'type'),
+                                      dropdownMenu(
+                                          auto_fes, 'เทศกาล', 'festival'),
                                     ],
                                   ),
                                 ),
@@ -460,8 +466,8 @@ class _AddPlaceState extends State<AddPlace> {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      emptyBoxShow(),
-                                      emptyBoxShow(),
+                                      emptyBoxShow(selects_type),
+                                      emptyBoxShow(selects_fes),
                                     ],
                                   ),
                                 ),
@@ -473,7 +479,8 @@ class _AddPlaceState extends State<AddPlace> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    dropdownMenu(allProvince, 'จังหวัด'),
+                                    dropdownMenu(
+                                        allProvince, 'จังหวัด', 'province'),
                                     myTextFieldWidthMid(
                                         'รหัสไปรษณีย์', address_Place, true),
                                   ],
@@ -530,9 +537,9 @@ class _AddPlaceState extends State<AddPlace> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     myTextFieldWidthMid(
-                                        'ละติจูด', address_Place,false),
+                                        'ละติจูด', address_Place, false),
                                     myTextFieldWidthMid(
-                                        'ลองติจูด', address_Place,false),
+                                        'ลองติจูด', address_Place, false),
                                   ],
                                 ),
                                 SizedBox(
@@ -569,8 +576,10 @@ class _AddPlaceState extends State<AddPlace> {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      dropdownMenu(auto_type, 'ประเภทสถานที่'),
-                                      dropdownMenu(auto_fes, 'เทศกาล'),
+                                      dropdownMenu(
+                                          auto_type, 'ประเภทสถานที่', 'type'),
+                                      dropdownMenu(
+                                          auto_fes, 'เทศกาล', 'festival'),
                                     ],
                                   ),
                                 ),
@@ -580,8 +589,8 @@ class _AddPlaceState extends State<AddPlace> {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      emptyBoxShow(),
-                                      emptyBoxShow(),
+                                      emptyBoxShow(selects_type),
+                                      emptyBoxShow(selects_fes),
                                     ],
                                   ),
                                 ),
@@ -593,9 +602,10 @@ class _AddPlaceState extends State<AddPlace> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    dropdownMenu(allProvince, 'จังหวัด'),
+                                    dropdownMenu(
+                                        allProvince, 'จังหวัด', 'province'),
                                     myTextFieldWidthMid(
-                                        'รหัสไปรษณีย์', address_Place,false),
+                                        'รหัสไปรษณีย์', address_Place, false),
                                   ],
                                 ),
                                 SizedBox(
@@ -629,13 +639,12 @@ class _AddPlaceState extends State<AddPlace> {
                                 SizedBox(
                                   height: 10,
                                 ),
-                                
                                 Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     myTextFieldWidthMid(
-                                        'ละติจูด', address_Place,false),
+                                        'ละติจูด', address_Place, false),
                                     myTextFieldWidthMid(
                                         'ลองติจูด', address_Place, false),
                                   ],

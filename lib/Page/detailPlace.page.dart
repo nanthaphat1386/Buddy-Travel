@@ -449,10 +449,12 @@ class _DetailPlaceState extends State<DetailPlace> {
                                         Padding(padding: EdgeInsets.all(10))
                                       ],
                                     ),
-                                    trailing: Icon(
-                                      Icons.favorite_rounded,
-                                      color: Color.fromARGB(122, 116, 63, 238),
-                                    ),
+                                    trailing:
+                                        id_me == detail['P_Review'][i]['R_MID']
+                                            ? IconButton(
+                                                onPressed: () {},
+                                                icon: Icon(Icons.edit))
+                                            : null,
                                   ),
                                 Divider(height: 0),
                               ],
