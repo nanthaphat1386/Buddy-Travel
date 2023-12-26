@@ -117,3 +117,32 @@ Future<List<String>> getProvince() async {
   print(list);
   return list;
 }
+
+Future getFestival() async {
+  var data;
+  Uri url = Uri.parse(
+      'https://bdtravel.comsciproject.net/buddy_travel/api/getFestival.php');
+  var response = await http.get(url);
+  // ignore: prefer_typing_uninitialized_variables
+  try {
+    data = jsonDecode(response.body);
+  } catch (e) {
+    print(e);
+  }
+  return data;
+}
+
+Future getType() async {
+  var data;
+  Uri url = Uri.parse(
+      'https://bdtravel.comsciproject.net/buddy_travel/api/getType.php');
+  var response = await http.get(url);
+  // ignore: prefer_typing_uninitialized_variables
+  try {
+    data = jsonDecode(response.body);
+  } catch (e) {
+    print(e);
+  }
+  print(data.runtimeType);
+  return data;
+}
