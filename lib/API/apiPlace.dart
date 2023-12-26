@@ -98,3 +98,51 @@ Future<String> addType(String festival) async {
   }
   return data;
 }
+
+Future<List<String>> getProvince() async {
+  Uri url = Uri.parse(
+      'https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_province.json');
+  var response = await http.get(url);
+  // ignore: prefer_typing_uninitialized_variables
+  var data;
+  List<String> list = [];
+  try {
+    data = jsonDecode(response.body);
+    for (int i = 0; i < data.length; i++) {
+      list.add(data[i]['name_th']);
+    }
+  } catch (e) {
+    print(e);
+  }
+  print(list);
+  return list;
+}
+
+Future getFestival() async {
+  var data;
+  Uri url = Uri.parse(
+      'https://bdtravel.comsciproject.net/buddy_travel/api/getFestival.php');
+  var response = await http.get(url);
+  // ignore: prefer_typing_uninitialized_variables
+  try {
+    data = jsonDecode(response.body);
+  } catch (e) {
+    print(e);
+  }
+  return data;
+}
+
+Future getType() async {
+  var data;
+  Uri url = Uri.parse(
+      'https://bdtravel.comsciproject.net/buddy_travel/api/getType.php');
+  var response = await http.get(url);
+  // ignore: prefer_typing_uninitialized_variables
+  try {
+    data = jsonDecode(response.body);
+  } catch (e) {
+    print(e);
+  }
+  print(data.runtimeType);
+  return data;
+}

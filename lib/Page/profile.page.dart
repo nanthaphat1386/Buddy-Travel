@@ -17,6 +17,7 @@ class Profile extends StatefulWidget {
 
 class _ProfileState extends State<Profile> {
   List data = [];
+  String id = '';
   String img = '';
   String name = '';
   String name_o = '';
@@ -37,12 +38,14 @@ class _ProfileState extends State<Profile> {
     } catch (e) {
       print(e);
     }
+    print(data);
     return data;
   }
 
   getMe() async {
     SharedPreferences _prefs = await SharedPreferences.getInstance();
     setState(() {
+      id = _prefs.getString('id').toString();
       name = '${_prefs.getString('fName')} ${_prefs.getString('lName')}';
       img = _prefs.getString('image').toString();
     });
@@ -131,9 +134,7 @@ class _ProfileState extends State<Profile> {
                             borderRadius: BorderRadius.circular(100),
                             image: DecorationImage(
                               image: NetworkImage(
-                                widget.info == 'me'
-                                    ? img
-                                    : img_o,
+                                widget.info == 'me' ? img : img_o,
                               ),
                               fit: BoxFit.fill,
                             )),
@@ -188,14 +189,12 @@ class _ProfileState extends State<Profile> {
                               return Padding(
                                 padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
                                 child: Container(
-                                  height: h * 0.37,
                                   decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(15)),
                                   child: Column(
                                     children: [
                                       Container(
-                                        height: h * 0.125,
                                         child: Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.start,
@@ -208,7 +207,7 @@ class _ProfileState extends State<Profile> {
                                                 radius: 30,
                                                 backgroundImage: NetworkImage(
                                                     data[index]
-                                                          ['Profile_Image'],
+                                                        ['Profile_Image'],
                                                     scale: 1.0),
                                               ),
                                             ),
@@ -219,7 +218,8 @@ class _ProfileState extends State<Profile> {
                                                   WrapCrossAlignment.start,
                                               children: [
                                                 Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.center,        
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
                                                   children: [
                                                     Text(
                                                       data[index]
@@ -229,7 +229,9 @@ class _ProfileState extends State<Profile> {
                                                               FontWeight.bold),
                                                     ),
                                                     Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .center,
                                                       children: [
                                                         Icon(
                                                           Icons.location_on,
@@ -238,14 +240,23 @@ class _ProfileState extends State<Profile> {
                                                         Text(data[index]
                                                             ['Place_Name'])
                                                       ],
-                                                    )
+                                                    ),
+                                                    SizedBox(
+                                                      width: w * 0.1,
+                                                    ),
+                                                    widget.info == 'me'
+                                                        ? IconButton(
+                                                            onPressed: () {},
+                                                            icon: Icon(Icons
+                                                                .edit_note))
+                                                        : Container(),
                                                   ],
                                                 ),
                                                 Container(
-                                                    width: w * 0.7,
+                                                    width: w * 0.6,
                                                     child: Expanded(
                                                         child: Text(
-                                                      data[index]['C_Text'],
+                                                      '${data[index]['C_Text']}',
                                                     )))
                                               ],
                                             )
@@ -297,7 +308,6 @@ class _ProfileState extends State<Profile> {
                               );
                             });
                       })),
-                      
             ],
           ),
         ),

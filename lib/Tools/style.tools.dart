@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hexcolor/hexcolor.dart';
 
 // ignore: camel_case_types
 abstract class styleText {
@@ -24,4 +25,10 @@ abstract class styleText {
 
   static const TextStyle styleIDProfile =
       TextStyle(color: Colors.black, fontFamily: 'Urbanist', fontSize: 15);
+
+  static TextStyle styleHeaderPlace = TextStyle(
+      color: HexColor('#7B71F0'),
+      fontFamily: 'Urbanist',
+      fontSize: 15,
+      fontWeight: FontWeight.bold);
 }
