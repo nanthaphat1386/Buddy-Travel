@@ -124,7 +124,7 @@ class _DetailPlaceState extends State<DetailPlace> {
                       return Container(
                           child: Image.network(
                         img[pagePosition],
-                        fit: BoxFit.fill,
+                        fit: BoxFit.fitHeight,
                       ));
                     }),
                 Positioned(

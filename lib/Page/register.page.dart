@@ -426,10 +426,7 @@ class _RegisterState extends State<Register> {
                                 Icon(Icons.done_outline,
                                     color: Color.fromARGB(167, 81, 69, 250)));
                                 Timer(Duration(seconds: 3), () {
-                                  Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => const Login()));
+                                  Navigator.pop(context);
                                 });
                                 if (imgShow != null) {
                                   UploadImage(imageFile, imageName);

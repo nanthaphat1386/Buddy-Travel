@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:projectbdtravel/API/apiPlace.dart';
-import 'package:projectbdtravel/Page/addPlace.dart';
+import 'package:projectbdtravel/Page/addPlace.page.dart';
 import 'package:projectbdtravel/Page/detailPlace.page.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -57,12 +57,16 @@ class _listPlaceState extends State<listPlace> {
           title: Text('สถานที่'),
           backgroundColor: Color.fromARGB(122, 116, 63, 238),
           actions: [
-            IconButton(onPressed: () async {
-              String refresh = await Navigator.push(context, MaterialPageRoute(builder: (context) => AddPlace()));
-              if (refresh == 'true'){
-                allPlace();
-              }
-            }, icon: Icon(Icons.add_home_work_sharp))
+            IconButton(
+                onPressed: () async {
+                  String refresh = await Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => AddPlace()));
+                  if (refresh == 'true') {
+                    allPlace();
+                    setState(() {});
+                  }
+                },
+                icon: Icon(Icons.add_home_work_sharp))
           ],
         ),
         floatingActionButton: FloatingActionButton(

@@ -1,6 +1,13 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:location/location.dart';
 import 'package:projectbdtravel/API/apiPlace.dart';
+import 'package:projectbdtravel/Page/deleteTypeFes.page.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
 import 'package:projectbdtravel/Tools/style.tools.dart';
 
@@ -12,6 +19,17 @@ class AddPlace extends StatefulWidget {
 }
 
 class _AddPlaceState extends State<AddPlace> {
+  final ImagePicker imagePicker = ImagePicker();
+
+  List<String> type_id = [];
+  List<String> type_Name = [];
+  List type = [];
+  List<String> type_add = [];
+  List<String> festival_id = [];
+  List<String> festival_Name = [];
+  List festival = [];
+  List<String> festival_add = [];
+
   List<String> auto_type = [];
   List<String> auto_fes = [];
   List<String> allProvince = [];
@@ -22,12 +40,25 @@ class _AddPlaceState extends State<AddPlace> {
   Color blackBorder = Colors.black26;
 
   String dropdownValue = '';
+  String provinceValue = '';
   List selects_type = [];
   List selects_fes = [];
+
+  List<XFile>? imageFileList = [];
 
   TextEditingController name_Place = new TextEditingController();
   TextEditingController description_Place = new TextEditingController();
   TextEditingController address_Place = new TextEditingController();
+  TextEditingController lat_place = new TextEditingController();
+  TextEditingController lng_place = new TextEditingController();
+  TextEditingController noProvince = new TextEditingController();
+
+  TextEditingController name_PlaceG = new TextEditingController();
+  TextEditingController description_PlaceG = new TextEditingController();
+  TextEditingController address_PlaceG = new TextEditingController();
+  TextEditingController lat_placeG = new TextEditingController();
+  TextEditingController lng_placeG = new TextEditingController();
+  TextEditingController noProvinceG = new TextEditingController();
 
   @override
   void initState() {
@@ -36,33 +67,162 @@ class _AddPlaceState extends State<AddPlace> {
     List_Type();
     List_Festival();
     List_Province();
+    getTypePlace();
+    getFestivalPlace();
   }
 
   // ignore: non_constant_identifier_names
   Future List_Type() async {
-    var data = await ListType();
-    setState(() {
-      auto_type = data;
-    });
+    try {
+      var data = await ListType();
+      setState(() {
+        auto_type = data;
+      });
+    } catch (e) {
+      print(e);
+    }
 
     return auto_type;
   }
 
   Future List_Festival() async {
-    var data = await ListFestival();
-    setState(() {
-      auto_fes = data;
-    });
+    try {
+      var data = await ListFestival();
+      setState(() {
+        auto_fes = data;
+      });
+    } catch (e) {
+      print(e);
+    }
+
     return auto_fes;
   }
 
   Future List_Province() async {
-    var data = await getProvince();
-    setState(() {
-      allProvince = data;
-    });
+    try {
+      var data = await getProvince();
+      setState(() {
+        allProvince = data;
+      });
+    } catch (e) {
+      print(e);
+    }
 
     return allProvince;
+  }
+
+  Future getTypePlace() async {
+    type_Name.clear();
+    try {
+      var data = await getType();
+      for (int i = 0; i < data.length; i++) {
+        setState(() {
+          type_Name.add(data[i]['T_Name'].toString());
+        });
+      }
+      setState(() {
+        type = data;
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future getFestivalPlace() async {
+    festival_Name.clear();
+    try {
+      var data = await getFestival();
+      for (int i = 0; i < data.length; i++) {
+        setState(() {
+          festival_Name.add(data[i]['F_Name'].toString());
+        });
+      }
+      setState(() {
+        festival = data;
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future addFesType(String id) async {
+    try {
+      for (int i = 0; i < selects_type.length; i++) {
+        for (int j = 0; j < type.length; j++) {
+          if (selects_type[i] == type[j]['T_Name']) {
+            addTypeforPlace(id, type[j]['T_ID']);
+          }
+        }
+      }
+      for (int i = 0; i < selects_fes.length; i++) {
+        for (int j = 0; j < festival.length; j++) {
+          if (selects_fes[i] == festival[j]['F_Name']) {
+            addFestivalforPlace(id, festival[j]['F_ID']);
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future uploadPhoto(String ans) async {
+    try {
+      for (int i = 0; i < imageFileList!.length; i++) {
+        UploadImagePlace(imageFileList![i].path, imageFileList![i].name);
+        addImageforPlace(ans, imageFileList![i].name);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void selectImages() async {
+    if (imageFileList!.length == 5) {
+      _dialogBuilderFullImage(context);
+    } else {
+      try {
+        final List<XFile>? selectedImages = await imagePicker.pickMultiImage();
+        if (selectedImages!.isNotEmpty) {
+          imageFileList!.addAll(selectedImages);
+        }
+        setState(() {});
+      } catch (e) {}
+    }
+  }
+
+  String checkList(List list, String str) {
+    int ans = 0;
+    for (int i = 0; i < list.length; i++) {
+      if (str == list[i]) {
+        ans++;
+      }
+    }
+    return ans.toString();
+  }
+
+  Future<void> _dialogBuilderFullImage(BuildContext context) {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('คำเตือน'),
+          content: const Text(
+              'รูปภาพครบ 5 รูปแล้ว โปรดลบออกแล้วทำรายการใหม่อีกครั้ง'),
+          actions: <Widget>[
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
+              child: const Text('ตกลง'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _showNotiDialog(
@@ -141,6 +301,9 @@ class _AddPlaceState extends State<AddPlace> {
           return TextField(
             controller: fieldTextEditingController,
             focusNode: fieldFocusNode,
+            onChanged: (value) {
+              header == 'type' ? str_type = value : str_fes = value;
+            },
             decoration: InputDecoration(
               enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide(width: 1, color: purpleBorder),
@@ -156,7 +319,6 @@ class _AddPlaceState extends State<AddPlace> {
           );
         },
         onSelected: (String str) {
-          print('Selected: ${str}');
           header == 'type' ? str_type = str : str_fes = str;
         },
         optionsViewBuilder: (BuildContext context,
@@ -172,7 +334,6 @@ class _AddPlaceState extends State<AddPlace> {
                   itemCount: options.length,
                   itemBuilder: (BuildContext context, int index) {
                     final String option = options.elementAt(index);
-
                     return GestureDetector(
                         onTap: () {
                           onSelected(option);
@@ -193,6 +354,54 @@ class _AddPlaceState extends State<AddPlace> {
           );
         },
       );
+    }
+
+    Container BoxImageShow() {
+      return Container(
+          width: w * 0.6,
+          height: h * 0.6,
+          margin: EdgeInsets.all(5.0),
+          //color: Colors.black,
+          decoration:
+              BoxDecoration(border: Border.all(color: Colors.blueAccent)),
+          child: Padding(
+            padding: EdgeInsets.all(10),
+            child: GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisSpacing: 0,
+                mainAxisSpacing: 0,
+                crossAxisCount: 3,
+              ),
+              itemCount: imageFileList!.length,
+              itemBuilder: (context, index) {
+                return InkWell(
+                    splashColor: Colors.white10, // Splash color over image
+                    child: Stack(
+                      children: [
+                        Ink.image(
+                          fit: BoxFit.cover, // Fixes border issues
+                          width: 100,
+                          height: 100,
+                          image: FileImage(File(imageFileList![index].path)),
+                        ),
+                        Align(
+                          alignment: Alignment.bottomRight,
+                          child: InkWell(
+                            onTap: () {
+                              imageFileList!.removeAt(index);
+                              setState(() {});
+                            },
+                            child: Icon(
+                              Icons.close,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ));
+              },
+            ),
+          ));
     }
 
     Container Type_Page() {
@@ -217,6 +426,9 @@ class _AddPlaceState extends State<AddPlace> {
                     if (ans == 'TRUE') {
                       _showNotiDialog(context, 'สำเร็จ',
                           'เพิ่มประเภทสถานที่สำเร็จ', Icons.done);
+                      setState(() {
+                        getTypePlace();
+                      });
                     } else if (ans == 'INCORRECT') {
                       _showNotiDialog(context, 'แจ้งเตือน',
                           'มีข้อมูลในระบบแล้ว', Icons.warning);
@@ -252,6 +464,7 @@ class _AddPlaceState extends State<AddPlace> {
                     if (ans == 'TRUE') {
                       _showNotiDialog(context, 'สำเร็จ',
                           'เพิ่มข้อมูลเทศกาลสำเร็จ', Icons.done);
+                      getFestivalPlace();
                     } else if (ans == 'INCORRECT') {
                       _showNotiDialog(context, 'แจ้งเตือน',
                           'มีข้อมูลในระบบแล้ว', Icons.warning);
@@ -279,6 +492,7 @@ class _AddPlaceState extends State<AddPlace> {
                   controller: text,
                   decoration: InputDecoration(
                     filled: true,
+                    fillColor: Colors.white,
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(width: 1, color: purpleBorder),
                     ),
@@ -309,13 +523,19 @@ class _AddPlaceState extends State<AddPlace> {
                   setState(() {
                     dropdownValue = value!;
                     str == 'type'
-                        ? selects_type.add(dropdownValue)
+                        ? checkList(selects_type, dropdownValue) == '0'
+                            ? selects_type.add(dropdownValue)
+                            : null
                         : str == 'festival'
-                            ? selects_fes.add(dropdownValue)
-                            : null;
+                            ? checkList(selects_fes, dropdownValue) == '0'
+                                ? selects_fes.add(dropdownValue)
+                                : null
+                            : provinceValue = dropdownValue;
                   });
                 },
                 inputDecorationTheme: InputDecorationTheme(
+                  fillColor: Colors.white,
+                  filled: true,
                   enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(width: 1, color: purpleBorder)),
                 ),
@@ -352,6 +572,7 @@ class _AddPlaceState extends State<AddPlace> {
                     contentPadding:
                         EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                     filled: true,
+                    fillColor: Colors.white,
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(width: 1, color: purpleBorder),
                     ),
@@ -387,6 +608,7 @@ class _AddPlaceState extends State<AddPlace> {
                     contentPadding:
                         EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                     filled: true,
+                    fillColor: Colors.white,
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(width: 1, color: purpleBorder),
                     ),
@@ -409,7 +631,24 @@ class _AddPlaceState extends State<AddPlace> {
         child: ListView(
           padding: EdgeInsets.all(5),
           children: [
-            for (int i = 0; i < enter.length; i++) Text(enter[i]),
+            for (int i = 0; i < enter.length; i++)
+              Stack(
+                children: [
+                  Text(enter[i]),
+                  Positioned(
+                      right: 1,
+                      child: InkWell(
+                        onTap: () {
+                          enter.removeAt(i);
+                          setState(() {});
+                        },
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.redAccent,
+                        ),
+                      ))
+                ],
+              ),
           ],
         ),
       );
@@ -454,9 +693,9 @@ class _AddPlaceState extends State<AddPlace> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       dropdownMenu(
-                                          auto_type, 'ประเภทสถานที่', 'type'),
+                                          type_Name, 'ประเภทสถานที่', 'type'),
                                       dropdownMenu(
-                                          auto_fes, 'เทศกาล', 'festival'),
+                                          festival_Name, 'เทศกาล', 'festival'),
                                     ],
                                   ),
                                 ),
@@ -482,7 +721,7 @@ class _AddPlaceState extends State<AddPlace> {
                                     dropdownMenu(
                                         allProvince, 'จังหวัด', 'province'),
                                     myTextFieldWidthMid(
-                                        'รหัสไปรษณีย์', address_Place, true),
+                                        'รหัสไปรษณีย์', noProvince, true),
                                   ],
                                 ),
                                 SizedBox(
@@ -498,19 +737,15 @@ class _AddPlaceState extends State<AddPlace> {
                                             backgroundColor:
                                                 MaterialStatePropertyAll(
                                                     HexColor('#9C9AFC'))),
-                                        onPressed: () {},
+                                        onPressed: () {
+                                          selectImages();
+                                        },
                                         child: Text(
                                           'เพิ่มรูปภาพ',
                                           style:
                                               TextStyle(fontFamily: 'Urbanist'),
                                         )),
-                                    Container(
-                                      width: w * 0.6,
-                                      height: h * 0.5,
-                                      decoration: BoxDecoration(
-                                          border: Border.all(
-                                              width: 1, color: purpleBorder)),
-                                    )
+                                    BoxImageShow(),
                                   ],
                                 ),
                                 SizedBox(
@@ -528,7 +763,21 @@ class _AddPlaceState extends State<AddPlace> {
                                                   MaterialStatePropertyAll(
                                                       purpleBorder)),
                                           child: Text('เลือกสถานที่'),
-                                          onPressed: () {},
+                                          onPressed: () async {
+                                            var ans = await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      MapMarkerPlace(),
+                                                ));
+                                            if (ans == 'false') {
+                                            } else {
+                                              lat_place.text =
+                                                  ans.latitude.toString();
+                                              lng_place.text =
+                                                  ans.longitude.toString();
+                                            }
+                                          },
                                         ))
                                   ],
                                 ),
@@ -537,9 +786,9 @@ class _AddPlaceState extends State<AddPlace> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     myTextFieldWidthMid(
-                                        'ละติจูด', address_Place, false),
+                                        'ละติจูด', lat_place, false),
                                     myTextFieldWidthMid(
-                                        'ลองติจูด', address_Place, false),
+                                        'ลองติจูด', lng_place, false),
                                   ],
                                 ),
                                 SizedBox(
@@ -557,7 +806,44 @@ class _AddPlaceState extends State<AddPlace> {
                                                   MaterialStatePropertyAll(
                                                       purpleBorder)),
                                           child: Text('เพิ่มสถานที่ท่องเที่ยว'),
-                                          onPressed: () {},
+                                          onPressed: () async {
+                                            if (name_Place.text.isNotEmpty &&
+                                                type.isNotEmpty &&
+                                                imageFileList!.isNotEmpty &&
+                                                festival.isNotEmpty &&
+                                                description_Place
+                                                    .text.isNotEmpty &&
+                                                address_Place.text.isNotEmpty &&
+                                                provinceValue != '' &&
+                                                noProvince.text.isNotEmpty &&
+                                                lat_place.text.isNotEmpty &&
+                                                lng_place.text.isNotEmpty) {
+                                              String ans = await addPlace(
+                                                  'AUTO',
+                                                  name_Place,
+                                                  description_Place,
+                                                  '${address_Place.text} $provinceValue ${noProvince.text}',
+                                                  lat_place,
+                                                  lng_place,
+                                                  DateFormat('dd-MM-yyyy')
+                                                      .format(DateTime.now()));
+                                              if (ans == 'FASLE' ||
+                                                  ans == 'FALSE INSERT') {
+                                                print('no insert');
+                                              } else {
+                                                addFesType(ans);
+                                                uploadPhoto(ans);
+                                                Timer(
+                                                    const Duration(seconds: 2),
+                                                    () {
+                                                  Navigator.pop(
+                                                      context, 'true');
+                                                });
+                                              }
+                                            } else {
+                                              print('no insert');
+                                            }
+                                          },
                                         ))
                                   ],
                                 ),
@@ -570,7 +856,17 @@ class _AddPlaceState extends State<AddPlace> {
                             padding: EdgeInsets.all(10),
                             child: ListView(
                               children: [
-                                myTextField('ชื่อสถานที่', name_Place),
+                                myTextField('ชื่อสถานที่', name_PlaceG),
+                                ElevatedButton(
+                                    style: ButtonStyle(
+                                        backgroundColor:
+                                            MaterialStatePropertyAll(
+                                                HexColor('#9C9AFC'))),
+                                    onPressed: () {},
+                                    child: Text(
+                                      'ค้นหาข้อมูล',
+                                      style: TextStyle(fontFamily: 'Urbanist'),
+                                    )),
                                 Container(
                                   child: Row(
                                     mainAxisAlignment:
@@ -594,10 +890,10 @@ class _AddPlaceState extends State<AddPlace> {
                                     ],
                                   ),
                                 ),
+                                myTextFieldWidthMax('ข้อความอธิบาย',
+                                    description_PlaceG, 0.4, 5),
                                 myTextFieldWidthMax(
-                                    'ข้อความอธิบาย', description_Place, 0.4, 5),
-                                myTextFieldWidthMax(
-                                    'ที่อยู่', address_Place, 0.2, 2),
+                                    'ที่อยู่', address_PlaceG, 0.2, 2),
                                 Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
@@ -605,7 +901,7 @@ class _AddPlaceState extends State<AddPlace> {
                                     dropdownMenu(
                                         allProvince, 'จังหวัด', 'province'),
                                     myTextFieldWidthMid(
-                                        'รหัสไปรษณีย์', address_Place, false),
+                                        'รหัสไปรษณีย์', address_PlaceG, false),
                                   ],
                                 ),
                                 SizedBox(
@@ -644,9 +940,9 @@ class _AddPlaceState extends State<AddPlace> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     myTextFieldWidthMid(
-                                        'ละติจูด', address_Place, false),
+                                        'ละติจูด', lat_placeG, false),
                                     myTextFieldWidthMid(
-                                        'ลองติจูด', address_Place, false),
+                                        'ลองติจูด', lng_placeG, false),
                                   ],
                                 ),
                                 SizedBox(
@@ -692,6 +988,18 @@ class _AddPlaceState extends State<AddPlace> {
               },
               icon: Icon(Icons.arrow_back)),
           backgroundColor: Color.fromARGB(122, 116, 63, 238),
+          actions: [
+            IconButton(
+                onPressed: () async {
+                  String str = await Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => DeleteObject()));
+                  if (str == 'true') {
+                    getFestivalPlace();
+                    getTypePlace();
+                  }
+                },
+                icon: Icon(Icons.delete_forever))
+          ],
           bottom: const TabBar(
             tabs: <Widget>[
               Tab(
@@ -718,5 +1026,195 @@ class _AddPlaceState extends State<AddPlace> {
         ),
       ),
     );
+  }
+}
+
+class MapMarkerPlace extends StatefulWidget {
+  const MapMarkerPlace({super.key});
+
+  @override
+  State<MapMarkerPlace> createState() => _MapMarkerPlaceState();
+}
+
+class _MapMarkerPlaceState extends State<MapMarkerPlace> {
+  late GoogleMapController _controller;
+  late Marker marker;
+  List<Marker> markers = <Marker>[];
+  late BitmapDescriptor customIconMe = BitmapDescriptor.defaultMarker;
+
+  late bool _serviceEnabled;
+  late PermissionStatus _permissionGranted;
+  late LocationData _userLocation;
+  LatLng initialCameraPosition =
+      const LatLng(36.865421209974606, -124.99604970216751);
+
+  LatLng answer = const LatLng(0.00, 0.00);
+
+  Future<void> _getUserLocation() async {
+    Location location = Location();
+
+    // Check if location service is enable
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+
+    // Check if permission is granted
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+
+    _userLocation = await location.getLocation();
+    double? latitude = _userLocation.latitude;
+    double? longitude = _userLocation.longitude;
+
+    try {
+      setState(() {
+        initialCameraPosition = LatLng(latitude!, longitude!);
+        answer = initialCameraPosition;
+        _controller
+            .moveCamera(CameraUpdate.newLatLng(LatLng(latitude, longitude)));
+        setMarkers(latitude, longitude);
+        _onMapCreate(_controller);
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getLocation();
+  }
+
+  Future<void> _getLocation() async {
+    Location location = Location();
+
+    // Check if location service is enable
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+
+    // Check if permission is granted
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+
+    _userLocation = await location.getLocation();
+    double? latitude = _userLocation.latitude;
+    double? longitude = _userLocation.longitude;
+
+    setState(() {
+      initialCameraPosition = LatLng(latitude!, longitude!);
+      _controller
+          .moveCamera(CameraUpdate.newLatLng(LatLng(latitude, longitude)));
+      _onMapCreate(_controller);
+    });
+  }
+
+  void _onMapCreate(GoogleMapController controller) {
+    _controller = controller;
+    _controller.animateCamera(CameraUpdate.newCameraPosition(
+        CameraPosition(target: initialCameraPosition, zoom: 12)));
+  }
+
+  createMarker() {
+    BitmapDescriptor.fromAssetImage(
+            const ImageConfiguration(size: Size(3, 3)), 'img/accountMe.png')
+        .then((icon) {
+      setState(() {
+        customIconMe = icon;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    double w = displayWidth(context);
+    double h = displayWidth(context) -
+        MediaQuery.of(context).padding.top -
+        kToolbarHeight;
+    return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Color.fromARGB(122, 116, 63, 238),
+          title: Text('เลือกตำแหน่งที่ตั้ง'),
+          leading: IconButton(
+              onPressed: () {
+                Navigator.pop(context, 'false');
+              },
+              icon: Icon(Icons.arrow_back_ios)),
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          backgroundColor: Color.fromARGB(122, 116, 63, 238),
+          onPressed: _getUserLocation,
+          label: const Text('ค้นหาฉัน'),
+          icon: const Icon(Icons.near_me),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+        body: Stack(
+          children: [
+            GoogleMap(
+              onTap: (LatLng latLng) {
+                markers.clear();
+                markers.add(Marker(
+                    markerId: const MarkerId('select'), position: latLng));
+                setState(() {});
+                answer = latLng;
+              },
+              mapType: MapType.normal,
+              markers: Set<Marker>.of(markers),
+              initialCameraPosition:
+                  CameraPosition(target: initialCameraPosition, zoom: 16),
+              onMapCreated: _onMapCreate,
+            ),
+            Positioned(
+              bottom: h * 0.055,
+              right: w * 0.25,
+              child: ElevatedButton(
+                  style: ButtonStyle(
+                      backgroundColor:
+                          MaterialStatePropertyAll(HexColor('#9C9AFC'))),
+                  onPressed: () {
+                    if (answer.latitude == 0.00 && answer.longitude == 0.00) {
+                    } else {
+                      Navigator.pop(context, answer);
+                    }
+                  },
+                  child: Text(
+                    'เลือกตำแหน่งนี้',
+                    style: TextStyle(fontFamily: 'Urbanist'),
+                  )),
+            )
+          ],
+        ));
+  }
+
+  setMarkers(double lat, double lng) {
+    markers.clear();
+    markers.add(
+      Marker(
+        markerId: const MarkerId("select"),
+        position: LatLng(lat, lng),
+        infoWindow: const InfoWindow(title: 'ต้องการเลือกที่อยู่ตำแหน่งนี้'),
+        icon: BitmapDescriptor.defaultMarker,
+      ),
+    );
+    setState(() {});
   }
 }
