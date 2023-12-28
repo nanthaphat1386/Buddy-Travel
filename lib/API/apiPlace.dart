@@ -1,6 +1,8 @@
 // ignore: file_names
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+import 'package:dio/dio.dart' as dio;
 import 'package:http/http.dart' as http;
 
 Future<List> getPlace() async {
@@ -15,6 +17,100 @@ Future<List> getPlace() async {
 
   if (data.toString().isEmpty) {
     data = 'ไม่มีข้อมูล';
+  }
+  return data;
+}
+
+Future<String> addPlace(
+  String id,
+  TextEditingController name, 
+  TextEditingController description,
+  String address,
+  TextEditingController lat,
+  TextEditingController lng,
+  String date
+  ) async {
+  Uri url = Uri.parse(
+      'https://bdtravel.comsciproject.net/buddy_travel/api/addPlace.php');
+  var response = await http.post(url,body: {
+    'id' : id,
+    'name' : name.text,
+    'description' : description.text,
+    'address' : address,
+    'lat' : lat.text,
+    'lng' : lng.text,
+    'date' : date 
+  });
+  // ignore: prefer_typing_uninitialized_variables
+  var data;
+  try {
+    data = jsonDecode(response.body);
+    print(data);
+  } catch (e) {
+    print(e);
+  }
+  return data;
+}
+
+Future<String> addTypeforPlace(
+  String pid,
+  String tid
+  ) async {
+  Uri url = Uri.parse(
+      'https://bdtravel.comsciproject.net/buddy_travel/api/addType.list.php');
+  var response = await http.post(url,body: {
+    'pid' : pid,
+    'tid' : tid,
+  });
+  // ignore: prefer_typing_uninitialized_variables
+  var data;
+  try {
+    data = jsonDecode(response.body);
+    print(data);
+  } catch (e) {
+    print(e);
+  }
+  return data;
+}
+
+Future<String> addFestivalforPlace(
+  String pid,
+  String fid
+  ) async {
+  Uri url = Uri.parse(
+      'https://bdtravel.comsciproject.net/buddy_travel/api/addFestival.list.php');
+  var response = await http.post(url,body: {
+    'pid' : pid,
+    'fid' : fid,
+  });
+  // ignore: prefer_typing_uninitialized_variables
+  var data;
+  try {
+    data = jsonDecode(response.body);
+    print(data);
+  } catch (e) {
+    print(e);
+  }
+  return data;
+}
+
+Future<String> addImageforPlace(
+  String pid,
+  String name
+  ) async {
+  Uri url = Uri.parse(
+      'https://bdtravel.comsciproject.net/buddy_travel/api/addPhoto_list.php');
+  var response = await http.post(url,body: {
+    'pid' : pid,
+    'image' : 'https://bdtravel.comsciproject.net/buddy_travel/Upload/Picture/$name',
+  });
+  // ignore: prefer_typing_uninitialized_variables
+  var data;
+  try {
+    data = jsonDecode(response.body);
+    print(data);
+  } catch (e) {
+    print(e);
   }
   return data;
 }
@@ -85,10 +181,11 @@ Future<String> addFestival(String festival) async {
   return data;
 }
 
-Future<String> addType(String festival) async {
+Future<String> addType(String type) async {
+  print(type);
   Uri url = Uri.parse(
       'https://bdtravel.comsciproject.net/buddy_travel/api/addtype.php');
-  var response = await http.post(url, body: {'name': festival});
+  var response = await http.post(url, body: {'name': type});
   // ignore: prefer_typing_uninitialized_variables
   var data;
   try {
@@ -145,4 +242,14 @@ Future getType() async {
   }
   print(data.runtimeType);
   return data;
+}
+
+UploadImagePlace(String fileImage, String imgName) async {
+  var formData = dio.FormData.fromMap(
+      {'file': await dio.MultipartFile.fromFile(fileImage, filename: imgName)});
+  var response = await Dio()
+      .post(
+          'https://bdtravel.comsciproject.net/buddy_travel/api/uploadImageProfile.php',
+          data: formData)
+      .then((value) => print("Response ==> $value"));
 }
