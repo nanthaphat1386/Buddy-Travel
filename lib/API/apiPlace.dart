@@ -240,7 +240,57 @@ Future getType() async {
   } catch (e) {
     print(e);
   }
-  print(data.runtimeType);
+  return data;
+}
+
+Future deleteType(String id, String name) async {
+  var data;
+  Uri url = Uri.parse(
+      'https://bdtravel.comsciproject.net/buddy_travel/api/removeType.php');
+  var response = await http.post(url,body: {
+    'ID' : id,
+    'name' : name
+  });
+  // ignore: prefer_typing_uninitialized_variables
+  try {
+    data = jsonDecode(response.body);
+  } catch (e) {
+    print(e);
+  }
+  return data;
+}
+
+Future deleteFestival(String id, String name) async {
+  var data;
+  Uri url = Uri.parse(
+      'https://bdtravel.comsciproject.net/buddy_travel/api/removeFestival.php');
+  var response = await http.post(url,body: {
+    'ID' : id,
+    'name' : name
+  });
+  // ignore: prefer_typing_uninitialized_variables
+  try {
+    data = jsonDecode(response.body);
+  } catch (e) {
+    print(e);
+  }
+  return data;
+}
+
+Future closePlace(String id) async {
+  var data;
+  Uri url = Uri.parse(
+      'https://bdtravel.comsciproject.net/buddy_travel/api/closePlace.php');
+  var response = await http.post(url,body: {
+    'id' : id,
+  });
+  // ignore: prefer_typing_uninitialized_variables
+  try {
+    data = jsonDecode(response.body);
+  } catch (e) {
+    print(e);
+  }
+  print(data);
   return data;
 }
 

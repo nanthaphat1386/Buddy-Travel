@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:projectbdtravel/API/apiPlace.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
 
 class DeleteObject extends StatefulWidget {
@@ -11,10 +12,97 @@ class DeleteObject extends StatefulWidget {
 
 class _DeleteObjectState extends State<DeleteObject> {
   Color purpleBorder = HexColor('#9C9AFC');
-   List<String> auto_type = [];
+  List<String> auto_type = [];
   List<String> auto_fes = [];
+  List Type = [];
+  List Festival = [];
   String str_type = '';
   String str_fes = '';
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getAutoType();
+    getAutoFestival();
+  }
+
+  void getAutoType() async {
+    Type = await getType();
+    for (int i = 0; i < Type.length; i++) {
+      setState(() {
+        auto_type.add(Type[i]['T_Name'].toString());
+      });
+    }
+  }
+
+  void getAutoFestival() async {
+    Festival = await getFestival();
+    for (int i = 0; i < Festival.length; i++) {
+      setState(() {
+        auto_fes.add(Festival[i]['F_Name'].toString());
+      });
+    }
+  }
+
+  Future removeType(String str) async {
+    String process = '';
+    for (int i = 0; i < Type.length; i++) {
+      if (Type[i]['T_Name'].toString() == str) {
+        process = await deleteType(Type[i]['T_ID'].toString(), str);
+      }
+    }
+    print(process);
+    return process;
+  }
+
+  Future removeFestival(String str) async {
+    String process = '';
+    for (int i = 0; i < Festival.length; i++) {
+      if (Festival[i]['F_Name'].toString() == str) {
+        process = await deleteFestival(Festival[i]['F_ID'].toString(), str);
+      }
+    }
+    print(process);
+    return process;
+  }
+
+  Future<void> _showMyDialog(String ans) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(ans == 'TRUE' ? 'สำเร็จ' : 'ไม่สำเร็จ'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(ans == 'TRUE'
+                    ? 'ลบรายการข้อมูลสำเร็จ'
+                    : 'กรุณาตรวจสอบรายการอีกครั้ง'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            Center(
+              child: ElevatedButton(
+                  style: ButtonStyle(
+                      backgroundColor: MaterialStatePropertyAll(
+                          Color.fromARGB(255, 127, 97, 248))),
+                  onPressed: () async {
+                    String ans = await removeType(str_type);
+                    if (ans == 'TRUE') {
+                      _showMyDialog('TRUE');
+                    }
+                    Navigator.pop(context);
+                  },
+                  child: Text('ตกลง')),
+            )
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,9 +201,19 @@ class _DeleteObjectState extends State<DeleteObject> {
               ElevatedButton(
                   style: ButtonStyle(
                       backgroundColor:
-                          MaterialStatePropertyAll(HexColor('#9C9AFC'))),
+                          MaterialStatePropertyAll(Colors.redAccent)),
                   onPressed: () async {
-                   },
+                    String ans = await removeType(str_type);
+                    if (ans == 'TRUE') {
+                      setState(() {
+                        getAutoFestival();
+                        getAutoType();
+                      });
+                      _showMyDialog('TRUE');
+                    } else {
+                      _showMyDialog(ans);
+                    }
+                  },
                   child: Text('ลบประเภทสถานที่'))
             ],
           ));
@@ -137,8 +235,19 @@ class _DeleteObjectState extends State<DeleteObject> {
               ElevatedButton(
                   style: ButtonStyle(
                       backgroundColor:
-                          MaterialStatePropertyAll(HexColor('#9C9AFC'))),
-                  onPressed: () async {},
+                          MaterialStatePropertyAll(Colors.redAccent)),
+                  onPressed: () async {
+                    String ans = await removeFestival(str_fes);
+                    if (ans == 'TRUE') {
+                      setState(() {
+                        getAutoFestival();
+                        getAutoType();
+                      });
+                      _showMyDialog(ans);
+                    } else {
+                      _showMyDialog(ans);
+                    }
+                  },
                   child: Text('ลบเทศกาล'))
             ],
           ));

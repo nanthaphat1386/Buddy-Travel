@@ -32,6 +32,8 @@ class _DetailPlaceState extends State<DetailPlace> {
   List festival = [];
   SampleItem? selectedMenu;
 
+  String closeplace = '';
+
   String id_me = '';
 
   late GoogleMapController _controller;
@@ -101,6 +103,65 @@ class _DetailPlaceState extends State<DetailPlace> {
 
   Future addReview() async {}
 
+  Future<void> _showMyDialogDelete() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('แจ้งเตือน'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('ต้องการปิดการใช้งานสถานที่ท่องเที่ยวแห่งนี้หรือไม่'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  ElevatedButton(
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStatePropertyAll(
+                              Color.fromARGB(255, 127, 97, 248))),
+                      onPressed: () async {
+                        setState(() {
+                          closeplace = 'TRUE';
+                        });
+                        String process = await closePlace(detail['P_ID']);
+                        if (process == 'TRUE') {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('ปิดสถานที่ท่องเที่ยวสำเร็จ')));
+                          Navigator.pop(context);
+                          Navigator.pop(context, 'TRUE');
+                        } else {
+                          Navigator.pop(context);
+                        }
+                      },
+                      child: Text('ตกลง')),
+                  ElevatedButton(
+                      style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStatePropertyAll(Colors.red)),
+                      onPressed: () async {
+                        setState(() {
+                          closeplace == 'FALSE';
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: Text('ยกเลิก')),
+                ],
+              ),
+            )
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     double w = displayWidth(context);
@@ -135,7 +196,7 @@ class _DetailPlaceState extends State<DetailPlace> {
                         color: Color.fromARGB(150, 255, 255, 255)),
                     child: IconButton(
                       onPressed: () {
-                        Navigator.pop(context);
+                        Navigator.pop(context, 'TRUE');
                       },
                       icon: Icon(Icons.arrow_back_ios_new, color: Colors.black),
                     ),
@@ -162,10 +223,15 @@ class _DetailPlaceState extends State<DetailPlace> {
                     child: PopupMenuButton<SampleItem>(
                       initialValue: selectedMenu,
                       // Callback that sets the selected popup menu item.
-                      onSelected: (SampleItem item) {
+                      onSelected: (SampleItem item) async {
                         setState(() {
                           selectedMenu = item;
                         });
+                        print(selectedMenu.toString());
+
+                        if (selectedMenu == SampleItem.itemThree) {
+                          _showMyDialogDelete();
+                        }
                       },
                       itemBuilder: (BuildContext context) =>
                           <PopupMenuEntry<SampleItem>>[

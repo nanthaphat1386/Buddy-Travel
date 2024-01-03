@@ -248,14 +248,25 @@ class _listPlaceState extends State<listPlace> {
                                           minWidth: 0.35 * w,
                                           height: 0.075 * h,
                                           child: ElevatedButton(
-                                            onPressed: () {
-                                              Navigator.push(
+                                            onPressed: () async{
+                                             String ans = await Navigator.push(
                                                   context,
                                                   MaterialPageRoute(
                                                       builder: (context) =>
                                                           DetailPlace(
                                                               id: Place[index]
                                                                   ['P_ID'])));
+                                            if(ans == 'TRUE'){
+                                              allPlace();
+                                              setState(() {
+                                                
+                                              });
+                                            }else {
+                                              allPlace();
+                                              setState(() {
+                                                
+                                              });
+                                            }
                                             },
                                             child: const Text(
                                               'เยี่ยมชม',

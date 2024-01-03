@@ -836,6 +836,10 @@ class _AddPlaceState extends State<AddPlace> {
                                                 Timer(
                                                     const Duration(seconds: 2),
                                                     () {
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(const SnackBar(
+                                                          content: Text(
+                                                              'เพิ่มสถานที่ท่องเที่ยวสำเร็จ')));
                                                   Navigator.pop(
                                                       context, 'true');
                                                 });
