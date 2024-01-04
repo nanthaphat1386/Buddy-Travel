@@ -52,7 +52,7 @@ class _ProfileState extends State<Profile> {
   }
 
   getother() async {
-    var data = await Search_Friend(widget.id);
+    var data = await getDetailMember(widget.id);
     setState(() {
       name_o = '${data[0]['M_fName']} ${data[0]['M_lName']}';
       img_o = data[0]['M_Image'].toString();
@@ -103,7 +103,7 @@ class _ProfileState extends State<Profile> {
                     ),
                     Padding(
                       padding: EdgeInsets.all(5),
-                      child: widget.info == 'me'
+                      child: widget.info == 'me' || widget.info == 'friend'
                           ? null
                           : Container(
                               decoration: BoxDecoration(

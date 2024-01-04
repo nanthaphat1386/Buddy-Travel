@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:projectbdtravel/API/apiFriend.dart';
 import 'package:projectbdtravel/API/apiUser.dart';
 import 'package:projectbdtravel/Page/profile.page.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddFriend extends StatefulWidget {
   const AddFriend({super.key});
@@ -13,10 +15,42 @@ class AddFriend extends StatefulWidget {
 
 class _AddFriendState extends State<AddFriend> {
   TextEditingController id_search = new TextEditingController();
-  int search = 0;
+  int search = 1;
   String name = '';
   String id = '';
   String img = '';
+  String status = '';
+
+  String mid = '';
+  List request_friend = [];
+
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getID();
+    allRequest(mid);
+  }
+
+  getID() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      setState(() {
+        mid = prefs.getString('id').toString();
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<List> allRequest(String id) async {
+    try {
+      request_friend = await get_Request(id);
+    } catch (e) {
+      print(e);
+    }
+    print(request_friend);
+    return request_friend;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,12 +101,20 @@ class _AddFriendState extends State<AddFriend> {
                             img = '';
                           });
                         } else {
-                          var data = await Search_Friend(id_search.text);
-                          if (data != "FALSE") {
+                          var data = await search_friend(mid, id_search);
+                          if (data['id'] == mid) {
                             setState(() {
-                              name = '${data[0]['M_fName']} ${data[0]['M_lName']}';
-                              id = data[0]['M_ID'].toString();
-                              img = data[0]['M_Image'].toString();
+                              name = data['name'];
+                              id = data['id'];
+                              img = data['image'];
+                              status = '3';
+                            });
+                          } else if (data != "FALSE") {
+                            setState(() {
+                              name = data['name'];
+                              id = data['id'];
+                              img = data['image'];
+                              status = data['status'];
                             });
                           } else {
                             setState(() {
@@ -98,19 +140,49 @@ class _AddFriendState extends State<AddFriend> {
                   : Card(
                       child: ListTile(
                         onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => Profile(id: id, info: 'other',),));
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Profile(
+                                  id: id,
+                                  info: id == mid
+                                      ? 'me'
+                                      : status == '0' || status == '2'
+                                          ? 'friend'
+                                          : 'other',
+                                ),
+                              ));
                         },
                         leading: CircleAvatar(
                           backgroundImage: NetworkImage(img, scale: 1.0),
                         ),
                         title: Text(name),
                         subtitle: Text('ID : ' + id),
-                        trailing: InkWell(
-                            onTap: () {},
-                            child: Icon(
-                              Icons.person_add_alt,
-                              color: HexColor('#0377FF'),
-                            )),
+                        trailing: status == '0'
+                            ? Text('เป็นเพื่อนกันแล้ว')
+                            : status == '1'
+                                ? InkWell(
+                                    onTap: () async {
+                                      var data = await addFriend(mid, id);
+                                      if (data == "TRUE") {
+                                        setState(() {
+                                          status = '2';
+                                        });
+                                      }
+                                    },
+                                    child: Icon(
+                                      Icons.person_add_alt,
+                                      color: HexColor('#0377FF'),
+                                    ))
+                                : status == '2'
+                                    ? Text('ส่งคำขอแล้ว')
+                                    : null,
+                        // InkWell(
+                        //     onTap: () {},
+                        //     child: Icon(
+                        //       Icons.person_add_alt,
+                        //       color: HexColor('#0377FF'),
+                        //     )),
                       ),
                     ),
             ),
@@ -122,7 +194,85 @@ class _AddFriendState extends State<AddFriend> {
             Container(
               padding: EdgeInsets.all(10),
               height: search == 1 ? h * 0.655 : h * 0.8,
-              child: ListView(),
+              child: Expanded(
+                  child: FutureBuilder(
+                      future: allRequest(
+                          mid), // a previously-obtained Future<String> or null
+                      builder:
+                          (BuildContext context, AsyncSnapshot<List> snapshot) {
+                        if (ConnectionState.active != null &&
+                            !snapshot.hasData) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+                        return ListView.builder(
+                          itemCount: request_friend.length,
+                          itemBuilder: (BuildContext buildContext, int index) {
+                            return Card(
+                              child: ListTile(
+                                  onTap: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => Profile(
+                                            id: request_friend[index]['Fr_ID'],
+                                            info: 'other',
+                                          ),
+                                        ));
+                                  },
+                                  leading: CircleAvatar(
+                                    backgroundImage: NetworkImage(
+                                        request_friend[index]['Fr_Image'],
+                                        scale: 1.0),
+                                  ),
+                                  title: Text(request_friend[index]['Fr_Name']),
+                                  subtitle: Text(
+                                      'ID : ' + request_friend[index]['Fr_ID']),
+                                  trailing: Container(
+                                    width: w * 0.15,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        InkWell(
+                                            onTap: () async {
+                                              String ans = await accept_Friend(
+                                                  mid,
+                                                  request_friend[index]
+                                                      ['Fr_ID']);
+                                              if (ans == "TRUE") {
+                                                setState(() {
+                                                  allRequest(mid);
+                                                });
+                                              }
+                                            },
+                                            child: Icon(
+                                              Icons.person_add_alt,
+                                              color: HexColor('#0377FF'),
+                                            )),
+                                        InkWell(
+                                            onTap: () async {
+                                              String ans = await cancel_Friend(
+                                                  mid,
+                                                  request_friend[index]
+                                                      ['Fr_ID']);
+                                              if (ans == "TRUE") {
+                                                setState(() {
+                                                  allRequest(mid);
+                                                });
+                                              }
+                                            },
+                                            child: Icon(
+                                              Icons.person_remove_alt_1,
+                                              color: Colors.red.shade300,
+                                            )),
+                                      ],
+                                    ),
+                                  )),
+                            );
+                          },
+                        );
+                      })),
             ),
           ],
         ),

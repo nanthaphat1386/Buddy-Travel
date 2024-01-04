@@ -51,9 +51,9 @@ Future login(String email, String password) async {
   return data;
 }
 
-Future Search_Friend(String id) async {
+Future getDetailMember(String id) async {
   Uri url = Uri.parse(
-      'https://bdtravel.comsciproject.net/buddy_travel/api/searchfriend.php');
+      'https://bdtravel.comsciproject.net/buddy_travel/api/getDetailMember.php');
   var response = await http.post(url, body: {'id': id});
   var data = jsonDecode(response.body);
   return data;
