@@ -177,17 +177,19 @@ class _DetailPlaceState extends State<DetailPlace> {
             width: w,
             child: Stack(
               children: [
-                PageView.builder(
-                    itemCount: img.length,
-                    pageSnapping: true,
-                    padEnds: false,
-                    itemBuilder: (context, pagePosition) {
-                      return Container(
-                          child: Image.network(
-                        img[pagePosition],
-                        fit: BoxFit.fitHeight,
-                      ));
-                    }),
+                Scrollbar(
+                  child: PageView.builder(
+                      itemCount: img.length,
+                      pageSnapping: true,
+                      padEnds: false,
+                      itemBuilder: (context, pagePosition) {
+                        return Container(
+                            child: Image.network(
+                          img[pagePosition],
+                          fit: BoxFit.fitHeight,
+                        ));
+                      }),
+                ),
                 Positioned(
                   left: w * 0.02,
                   top: h * 0.02,
@@ -426,104 +428,110 @@ class _DetailPlaceState extends State<DetailPlace> {
                         ),
                         Container(
                             padding: EdgeInsets.only(bottom: 10, top: 5),
-                            child: ListView(
-                              children: [
-                                for (int i = 0; i < len_review; i++)
-                                  ListTile(
-                                    leading: InkWell(
-                                      onTap: () {
-                                        if (detail['P_Review'][i]['R_MID'] ==
-                                            id_me) {
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) => Profile(
-                                                      id: detail['P_Review'][i]
-                                                          ['R_MID'],
-                                                      info: 'me')));
-                                        } else {
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) => Profile(
-                                                      id: detail['P_Review'][i]
-                                                          ['R_MID'],
-                                                      info: 'other')));
-                                        }
-                                      },
-                                      child: CircleAvatar(
-                                        radius: 25,
-                                        backgroundImage: NetworkImage(
-                                            detail['P_Review'][i]['R_Image'],
-                                            scale: 1.0),
-                                      ),
-                                    ),
-                                    title: Wrap(
-                                      alignment: WrapAlignment.start,
-                                      crossAxisAlignment:
-                                          WrapCrossAlignment.center,
-                                      children: [
-                                        Text(detail['P_Review'][i]['R_Name'] +
-                                            ' ' +
-                                            detail['P_Review'][i]['R_Point']),
-                                        Icon(
-                                          Icons.star,
-                                          color: Colors.yellow,
-                                        )
-                                      ],
-                                    ),
-                                    subtitle: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(detail['P_Review'][i]['R_Text']),
-                                        Container(
-                                          height: detail["P_Review"][i]
-                                                          ["R_ImageReview"]
-                                                      .length <=
-                                                  0
-                                              ? 0
-                                              : detail["P_Review"][i]
-                                                              ["R_ImageReview"]
-                                                          .length <
-                                                      4
-                                                  ? h * 0.275
-                                                  : h * 0.65,
-                                          child: GridView.count(
-                                            // Create a grid with 2 columns. If you change the scrollDirection to
-                                            // horizontal, this produces 2 rows.
-                                            crossAxisCount: 3,
-                                            // Generate 100 widgets that display their index in the List.
-                                            children: List.generate(
-                                                detail["P_Review"][i]
-                                                        ["R_ImageReview"]
-                                                    .length, (index) {
-                                              return Padding(
-                                                padding: EdgeInsets.all(5),
-                                                child: Image(
-                                                  fit: BoxFit.fill,
-                                                  image: NetworkImage(
-                                                      detail["P_Review"][i]
-                                                              ["R_ImageReview"]
-                                                          [index],
-                                                      scale: 1.0),
-                                                ),
-                                              );
-                                            }),
-                                          ),
+                            child: Scrollbar(
+                              child: ListView(
+                                children: [
+                                  for (int i = 0; i < len_review; i++)
+                                    ListTile(
+                                      leading: InkWell(
+                                        onTap: () {
+                                          if (detail['P_Review'][i]['R_MID'] ==
+                                              id_me) {
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        Profile(
+                                                            id: detail[
+                                                                    'P_Review']
+                                                                [i]['R_MID'],
+                                                            info: 'me')));
+                                          } else {
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        Profile(
+                                                            id: detail[
+                                                                    'P_Review']
+                                                                [i]['R_MID'],
+                                                            info: 'other')));
+                                          }
+                                        },
+                                        child: CircleAvatar(
+                                          radius: 25,
+                                          backgroundImage: NetworkImage(
+                                              detail['P_Review'][i]['R_Image'],
+                                              scale: 1.0),
                                         ),
-                                        Padding(padding: EdgeInsets.all(10))
-                                      ],
+                                      ),
+                                      title: Wrap(
+                                        alignment: WrapAlignment.start,
+                                        crossAxisAlignment:
+                                            WrapCrossAlignment.center,
+                                        children: [
+                                          Text(detail['P_Review'][i]['R_Name'] +
+                                              ' ' +
+                                              detail['P_Review'][i]['R_Point']),
+                                          Icon(
+                                            Icons.star,
+                                            color: Colors.yellow,
+                                          )
+                                        ],
+                                      ),
+                                      subtitle: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(detail['P_Review'][i]['R_Text']),
+                                          Container(
+                                            height: detail["P_Review"][i]
+                                                            ["R_ImageReview"]
+                                                        .length <=
+                                                    0
+                                                ? 0
+                                                : detail["P_Review"][i][
+                                                                "R_ImageReview"]
+                                                            .length <
+                                                        4
+                                                    ? h * 0.275
+                                                    : h * 0.65,
+                                            child: GridView.count(
+                                              // Create a grid with 2 columns. If you change the scrollDirection to
+                                              // horizontal, this produces 2 rows.
+                                              crossAxisCount: 3,
+                                              // Generate 100 widgets that display their index in the List.
+                                              children: List.generate(
+                                                  detail["P_Review"][i]
+                                                          ["R_ImageReview"]
+                                                      .length, (index) {
+                                                return Padding(
+                                                  padding: EdgeInsets.all(5),
+                                                  child: Image(
+                                                    fit: BoxFit.fill,
+                                                    image: NetworkImage(
+                                                        detail["P_Review"][i][
+                                                                "R_ImageReview"]
+                                                            [index],
+                                                        scale: 1.0),
+                                                  ),
+                                                );
+                                              }),
+                                            ),
+                                          ),
+                                          Padding(padding: EdgeInsets.all(10))
+                                        ],
+                                      ),
+                                      trailing: id_me ==
+                                              detail['P_Review'][i]['R_MID']
+                                          ? IconButton(
+                                              onPressed: () {},
+                                              icon: Icon(Icons.edit))
+                                          : null,
                                     ),
-                                    trailing:
-                                        id_me == detail['P_Review'][i]['R_MID']
-                                            ? IconButton(
-                                                onPressed: () {},
-                                                icon: Icon(Icons.edit))
-                                            : null,
-                                  ),
-                                Divider(height: 0),
-                              ],
+                                  Divider(height: 0),
+                                ],
+                              ),
                             )),
                       ]))
                 ]),

@@ -264,22 +264,25 @@ class _ProfileState extends State<Profile> {
                                         ),
                                       ),
                                       Container(
-                                        alignment: Alignment.center,
-                                        width: w * 0.65,
-                                        height: h * 0.165,
-                                        child: PageView.builder(
-                                            itemCount:
-                                                data[index]['C_Image'].length,
-                                            pageSnapping: true,
-                                            padEnds: false,
-                                            itemBuilder: (context, i) {
-                                              return Container(
-                                                  child: Image.network(
-                                                data[index]['C_Image'][i],
-                                                fit: BoxFit.fill,
-                                              ));
-                                            }),
-                                      ),
+                                          alignment: Alignment.center,
+                                          width: w * 0.65,
+                                          height: h * 0.165,
+                                          child: Scrollbar(
+                                            showTrackOnHover: true,
+                                            child: PageView.builder(
+                                                itemCount: data[index]
+                                                        ['C_Image']
+                                                    .length,
+                                                pageSnapping: true,
+                                                padEnds: false,
+                                                itemBuilder: (context, i) {
+                                                  return Container(
+                                                      child: Image.network(
+                                                    data[index]['C_Image'][i],
+                                                    fit: BoxFit.fill,
+                                                  ));
+                                                }),
+                                          )),
                                       Padding(
                                         padding: EdgeInsets.all(5),
                                         child: Container(
