@@ -285,6 +285,7 @@ class _EditProfileState extends State<EditProfile> {
                                     backgroundColor: Colors.white,
                                     child: CircleAvatar(
                                       radius: w * 0.25,
+                                      backgroundColor: Colors.transparent,
                                       backgroundImage:
                                           NetworkImage(imgProfile, scale: 1.0),
                                       child: Align(
