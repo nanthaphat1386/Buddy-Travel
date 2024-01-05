@@ -434,10 +434,10 @@ class _DetailPlaceState extends State<DetailPlace> {
                                   for (int i = 0; i < len_review; i++)
                                     ListTile(
                                       leading: InkWell(
-                                        onTap: () {
+                                        onTap: () async {
                                           if (detail['P_Review'][i]['R_MID'] ==
                                               id_me) {
-                                            Navigator.push(
+                                            String value = await Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
                                                     builder: (context) =>
@@ -446,8 +446,13 @@ class _DetailPlaceState extends State<DetailPlace> {
                                                                     'P_Review']
                                                                 [i]['R_MID'],
                                                             info: 'me')));
+                                            if (value == "TRUE") {
+                                              setState(() {
+                                                getDetailPlace();
+                                              });
+                                            }
                                           } else {
-                                            Navigator.push(
+                                            String value = await Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
                                                     builder: (context) =>
@@ -456,6 +461,11 @@ class _DetailPlaceState extends State<DetailPlace> {
                                                                     'P_Review']
                                                                 [i]['R_MID'],
                                                             info: 'other')));
+                                            if (value == "TRUE") {
+                                              setState(() {
+                                                getDetailPlace();
+                                              });
+                                            }
                                           }
                                         },
                                         child: CircleAvatar(

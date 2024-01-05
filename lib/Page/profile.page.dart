@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:projectbdtravel/API/apiFriend.dart';
 import 'package:projectbdtravel/API/apiUser.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
 import 'package:projectbdtravel/Tools/style.tools.dart';
@@ -7,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class Profile extends StatefulWidget {
   final String id;
-  final String info;
+  final String? info;
   const Profile({Key? key, required this.id, required this.info})
       : super(key: key);
 
@@ -22,6 +23,7 @@ class _ProfileState extends State<Profile> {
   String name = '';
   String name_o = '';
   String img_o = '';
+  String status = '';
 
   @override
   void initState() {
@@ -57,6 +59,20 @@ class _ProfileState extends State<Profile> {
       name_o = '${data[0]['M_fName']} ${data[0]['M_lName']}';
       img_o = data[0]['M_Image'].toString();
     });
+    TextEditingController str = new TextEditingController();
+    setState(() {
+      str.text = widget.id;
+    });
+    var response = await search_friend(id, str);
+    if (response['status'] == '0') {
+      setState(() {
+        status = 'friend';
+      });
+    } else if (response['status'] == '2') {
+      setState(() {
+        status = '2';
+      });
+    }
   }
 
   @override
@@ -96,22 +112,54 @@ class _ProfileState extends State<Profile> {
                             color: Color.fromARGB(140, 255, 255, 255)),
                         child: IconButton(
                             onPressed: () {
-                              Navigator.pop(context);
+                              Navigator.pop(context, 'TRUE');
                             },
                             icon: Icon(Icons.arrow_back)),
                       ),
                     ),
                     Padding(
                       padding: EdgeInsets.all(5),
-                      child: widget.info == 'me' || widget.info == 'friend'
+                      child: widget.info == 'me' ||
+                              widget.info == 'friend' ||
+                              status == 'friend'
                           ? null
-                          : Container(
-                              decoration: BoxDecoration(
-                                  color: Color.fromARGB(140, 255, 255, 255)),
-                              child: IconButton(
-                                  onPressed: () {},
-                                  icon: Icon(Icons.person_add)),
-                            ),
+                          : status == '2'
+                              ? Container(
+                                  decoration: BoxDecoration(
+                                      color:
+                                          Color.fromARGB(140, 255, 255, 255)),
+                                  child: IconButton(
+                                      onPressed: () async {
+                                        String value =
+                                            await cancel_Friend(widget.id, id);
+                                        if (value == "TRUE") {
+                                          setState(() {
+                                            status = "other";
+                                          });
+                                        }
+                                      },
+                                      icon: Icon(Icons.person_remove_alt_1)),
+                                )
+                              : Container(
+                                  decoration: BoxDecoration(
+                                      color:
+                                          Color.fromARGB(140, 255, 255, 255)),
+                                  child: IconButton(
+                                      onPressed: () async {
+                                        var data =
+                                            await addFriend(id, widget.id);
+                                        if (data == "TRUE") {
+                                          setState(() {
+                                            status = '2';
+                                          });
+                                        }else if(data == "FRIEND"){
+                                          setState(() {
+                                            status = 'friend';
+                                          });
+                                        }
+                                      },
+                                      icon: Icon(Icons.person_add)),
+                                ),
                     ),
                   ],
                 ),

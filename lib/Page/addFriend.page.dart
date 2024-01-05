@@ -102,6 +102,8 @@ class _AddFriendState extends State<AddFriend> {
                           });
                         } else {
                           var data = await search_friend(mid, id_search);
+                          print(mid);
+                          print(id_search.text);
                           if (data['id'] == mid) {
                             setState(() {
                               name = data['name'];
@@ -139,19 +141,29 @@ class _AddFriendState extends State<AddFriend> {
                   ? null
                   : Card(
                       child: ListTile(
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          String value = await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => Profile(
                                   id: id,
-                                  info: id == mid
-                                      ? 'me'
-                                      : status == '0' || status == '2'
-                                          ? 'friend'
-                                          : 'other',
+                                  info: id == mid ? 'me' : 'other',
                                 ),
                               ));
+                          if (value == "TRUE") {
+                            var data = await search_friend(mid, id_search);
+                            if (data != "FALSE") {
+                              setState(() {
+                                name = data['name'];
+                                id = data['id'];
+                                img = data['image'];
+                                status = data['status'];
+                              });
+                            }
+                            setState(() {
+                              allRequest(mid);
+                            });
+                          }
                         },
                         leading: CircleAvatar(
                           backgroundImage: NetworkImage(img, scale: 1.0),
@@ -167,6 +179,10 @@ class _AddFriendState extends State<AddFriend> {
                                       if (data == "TRUE") {
                                         setState(() {
                                           status = '2';
+                                        });
+                                      } else if (data == "FRIEND") {
+                                        setState(() {
+                                          status = '0';
                                         });
                                       }
                                     },
@@ -210,8 +226,8 @@ class _AddFriendState extends State<AddFriend> {
                           itemBuilder: (BuildContext buildContext, int index) {
                             return Card(
                               child: ListTile(
-                                  onTap: () {
-                                    Navigator.push(
+                                  onTap: () async {
+                                    String value = await Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) => Profile(
@@ -219,6 +235,11 @@ class _AddFriendState extends State<AddFriend> {
                                             info: 'other',
                                           ),
                                         ));
+                                    if (value == "TRUE") {
+                                      setState(() {
+                                        allRequest(mid);
+                                      });
+                                    }
                                   },
                                   leading: CircleAvatar(
                                     backgroundImage: NetworkImage(
