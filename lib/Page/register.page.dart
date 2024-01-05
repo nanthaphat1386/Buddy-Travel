@@ -414,17 +414,25 @@ class _RegisterState extends State<Register> {
                           print(check_email);
                           if (check_email) {
                             if (password.text.contains(password_check.text)) {
-                              var answer = await register(email, name, surname,
-                                  password, dateinput, imgShow!, imageName);
+                              var answer;
+                              if (imageName == '') {
+                                answer = await register(email, name, surname,
+                                    password, dateinput,File(''), imageName);
+                              }else{
+                                answer = await register(email, name, surname,
+                                    password, dateinput, imgShow!, imageName);
+                              }
+
                               if (answer.contains("EMAIL ALREADY USED")) {
                                 //       print('tt');
                               } else if (answer.contains("TRUE")) {
-                               _showNotiDialog(
-                                context,
-                                'สำเร็จ',
-                                'สมัครสมาชิกสำเร็จ',
-                                Icon(Icons.done_outline,
-                                    color: Color.fromARGB(167, 81, 69, 250)));
+                                _showNotiDialog(
+                                    context,
+                                    'สำเร็จ',
+                                    'สมัครสมาชิกสำเร็จ',
+                                    Icon(Icons.done_outline,
+                                        color:
+                                            Color.fromARGB(167, 81, 69, 250)));
                                 Timer(Duration(seconds: 3), () {
                                   Navigator.pop(context);
                                 });
@@ -433,19 +441,20 @@ class _RegisterState extends State<Register> {
                                 }
                               } else {
                                 _showNotiDialog(
-                                context,
-                                'แจ้งเตือน',
-                                'สมัครสมาชิกไม่สำเร็จ',
-                                Icon(Icons.warning,
-                                    color: Color.fromARGB(167, 81, 69, 250)));
+                                    context,
+                                    'แจ้งเตือน',
+                                    'สมัครสมาชิกไม่สำเร็จ',
+                                    Icon(Icons.warning,
+                                        color:
+                                            Color.fromARGB(167, 81, 69, 250)));
                               }
                             } else {
                               _showNotiDialog(
-                                context,
-                                'แจ้งเตือน',
-                                'รหัสผ่านไม่ถูกต้อง',
-                                Icon(Icons.warning,
-                                    color: Color.fromARGB(167, 81, 69, 250)));
+                                  context,
+                                  'แจ้งเตือน',
+                                  'รหัสผ่านไม่ถูกต้อง',
+                                  Icon(Icons.warning,
+                                      color: Color.fromARGB(167, 81, 69, 250)));
                             }
                           } else {
                             _showNotiDialog(
