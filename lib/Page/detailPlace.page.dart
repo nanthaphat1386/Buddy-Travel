@@ -1,6 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:projectbdtravel/API/apiFavorite.dart';
 import 'package:projectbdtravel/API/apiPlace.dart';
 import 'package:projectbdtravel/Page/profile.page.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
@@ -36,6 +37,11 @@ class _DetailPlaceState extends State<DetailPlace> {
 
   String id_me = '';
 
+  List dropdownFavorite = [];
+  List<String> dropdownFavoriteName = [];
+  String select = '';
+  String select_id = '';
+
   late GoogleMapController _controller;
   late Marker marker;
   List<Marker> markers = <Marker>[];
@@ -47,6 +53,24 @@ class _DetailPlaceState extends State<DetailPlace> {
     super.initState();
     getDetailPlace();
     getME();
+  }
+
+  Future getlistDD(String id) async {
+    var data = await dropdown_Favorite(id);
+    if (data == "FASLE") {
+      dropdownFavorite.clear();
+      dropdownFavoriteName.clear();
+    } else {
+      dropdownFavorite = data;
+      setState(() {
+        select_id = dropdownFavorite[0]['id'];
+      });
+
+      for (int i = 0; i < data.length; i++) {
+        dropdownFavoriteName.add(data[i]['name']);
+      }
+    }
+    return dropdownFavoriteName;
   }
 
   Future getDetailPlace() async {
@@ -93,6 +117,7 @@ class _DetailPlaceState extends State<DetailPlace> {
     setState(() {
       id_me = _prefs.getString('id').toString();
     });
+    getlistDD(id_me);
   }
 
   void _onMapCreate(GoogleMapController controller) {
@@ -150,6 +175,87 @@ class _DetailPlaceState extends State<DetailPlace> {
                         setState(() {
                           closeplace == 'FALSE';
                         });
+                        Navigator.pop(context);
+                      },
+                      child: Text('ยกเลิก')),
+                ],
+              ),
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  DropdownMenu dd_Favorite() {
+    return DropdownMenu<String>(
+      initialSelection: dropdownFavoriteName.first,
+      onSelected: (String? value) {
+        for (int i = 0; i < dropdownFavorite.length; i++) {
+          if (value == dropdownFavorite[i]['name']) {
+            setState(() {
+              select_id = dropdownFavorite[i]['id'];
+            });
+          }
+        }
+        // This is called when the user selects an item.
+        setState(() {
+          select = value!;
+        });
+      },
+      width: 230,
+      dropdownMenuEntries:
+          dropdownFavoriteName.map<DropdownMenuEntry<String>>((String value) {
+        return DropdownMenuEntry<String>(value: value, label: value);
+      }).toList(),
+    );
+  }
+
+  Future<void> _showMyDialogSelect() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('เพิ่มลงในรายการโปรด'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('เลือกชื่อรายการที่จะเพิ่ม :'),
+                dd_Favorite(),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  ElevatedButton(
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStatePropertyAll(
+                              Color.fromARGB(255, 127, 97, 248))),
+                      onPressed: () async {
+                        String value = await add_PlaceFavorite(
+                            "ADD", select_id, widget.id);
+
+                        if (value == "TRUE") {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('เพิ่มรายการสำเร็จ')));
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('เพิ่มรายการไม่สำเร็จ')));
+                        }
+                      },
+                      child: Text('ตกลง')),
+                  ElevatedButton(
+                      style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStatePropertyAll(Colors.red)),
+                      onPressed: () async {
                         Navigator.pop(context);
                       },
                       child: Text('ยกเลิก')),
@@ -280,7 +386,9 @@ class _DetailPlaceState extends State<DetailPlace> {
                             fontSize: w * 0.05, fontWeight: FontWeight.bold),
                       ),
                       IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          _showMyDialogSelect();
+                        },
                         icon: Icon(Icons.bookmark_border,
                             color: Color.fromARGB(122, 116, 63, 238)),
                       ),

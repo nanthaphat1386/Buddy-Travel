@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hexcolor/hexcolor.dart';
 import 'package:projectbdtravel/API/apiPlace.dart';
 import 'package:projectbdtravel/Page/addPlace.page.dart';
 import 'package:projectbdtravel/Page/detailPlace.page.dart';
@@ -55,7 +56,7 @@ class _listPlaceState extends State<listPlace> {
     return Scaffold(
         appBar: AppBar(
           title: Text('สถานที่'),
-          backgroundColor: Color.fromARGB(122, 116, 63, 238),
+          backgroundColor: HexColor('#9C9AFC'),
           actions: [
             IconButton(
                 onPressed: () async {
@@ -70,7 +71,7 @@ class _listPlaceState extends State<listPlace> {
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          backgroundColor: Color.fromARGB(150, 116, 63, 238),
+          backgroundColor: HexColor('#859C9AFC'),
           onPressed: () {},
           shape: CircleBorder(),
           child: const Icon(Icons.search),
@@ -144,8 +145,7 @@ class _listPlaceState extends State<listPlace> {
                                                       ' '),
                                                   Icon(
                                                     Icons.reviews,
-                                                    color: Color.fromARGB(
-                                                        176, 116, 63, 238),
+                                                    color: HexColor('#9C9AFC'),
                                                   ),
                                                 ],
                                               ),
@@ -163,8 +163,7 @@ class _listPlaceState extends State<listPlace> {
                                                 'ประเภท ',
                                                 style: TextStyle(
                                                     fontSize: 15,
-                                                    color: Color.fromARGB(
-                                                        255, 0, 0, 0)),
+                                                    color: Colors.black),
                                               ),
                                               for (int i = 0;
                                                   i <
@@ -196,8 +195,7 @@ class _listPlaceState extends State<listPlace> {
                                                 'เทศกาล ',
                                                 style: TextStyle(
                                                     fontSize: 15,
-                                                    color: Color.fromARGB(
-                                                        255, 0, 0, 0)),
+                                                    color: Colors.black),
                                               ),
                                               for (int i = 0;
                                                   i <
@@ -276,8 +274,8 @@ class _listPlaceState extends State<listPlace> {
                                                   'เยี่ยมชม',
                                                 ),
                                                 style: ElevatedButton.styleFrom(
-                                                    primary: Color.fromARGB(
-                                                        176, 116, 63, 238),
+                                                    primary:
+                                                        HexColor('#9C9AFC'),
                                                     padding:
                                                         EdgeInsets.symmetric(
                                                             horizontal: 30,
@@ -311,7 +309,7 @@ class _listPlaceState extends State<listPlace> {
       //width: 0.15 * w,
       height: 0.075 * h,
       alignment: Alignment.center,
-      decoration: myBoxDecoration(Color.fromARGB(176, 116, 63, 238)),
+      decoration: myBoxDecoration(HexColor('#9C9AFC')),
       child: Text(
         str,
         textAlign: TextAlign.center,
