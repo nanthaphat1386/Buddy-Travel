@@ -22,24 +22,23 @@ Future<List> getPlace() async {
 }
 
 Future<String> addPlace(
-  String id,
-  TextEditingController name, 
-  TextEditingController description,
-  String address,
-  TextEditingController lat,
-  TextEditingController lng,
-  String date
-  ) async {
+    String id,
+    TextEditingController name,
+    TextEditingController description,
+    String address,
+    TextEditingController lat,
+    TextEditingController lng,
+    String date) async {
   Uri url = Uri.parse(
       'https://bdtravel.comsciproject.net/buddy_travel/api/addPlace.php');
-  var response = await http.post(url,body: {
-    'id' : id,
-    'name' : name.text,
-    'description' : description.text,
-    'address' : address,
-    'lat' : lat.text,
-    'lng' : lng.text,
-    'date' : date 
+  var response = await http.post(url, body: {
+    'id': id,
+    'name': name.text,
+    'description': description.text,
+    'address': address,
+    'lat': lat.text,
+    'lng': lng.text,
+    'date': date
   });
   // ignore: prefer_typing_uninitialized_variables
   var data;
@@ -52,15 +51,12 @@ Future<String> addPlace(
   return data;
 }
 
-Future<String> addTypeforPlace(
-  String pid,
-  String tid
-  ) async {
+Future<String> addTypeforPlace(String pid, String tid) async {
   Uri url = Uri.parse(
       'https://bdtravel.comsciproject.net/buddy_travel/api/addType.list.php');
-  var response = await http.post(url,body: {
-    'pid' : pid,
-    'tid' : tid,
+  var response = await http.post(url, body: {
+    'pid': pid,
+    'tid': tid,
   });
   // ignore: prefer_typing_uninitialized_variables
   var data;
@@ -73,15 +69,12 @@ Future<String> addTypeforPlace(
   return data;
 }
 
-Future<String> addFestivalforPlace(
-  String pid,
-  String fid
-  ) async {
+Future<String> addFestivalforPlace(String pid, String fid) async {
   Uri url = Uri.parse(
       'https://bdtravel.comsciproject.net/buddy_travel/api/addFestival.list.php');
-  var response = await http.post(url,body: {
-    'pid' : pid,
-    'fid' : fid,
+  var response = await http.post(url, body: {
+    'pid': pid,
+    'fid': fid,
   });
   // ignore: prefer_typing_uninitialized_variables
   var data;
@@ -94,15 +87,13 @@ Future<String> addFestivalforPlace(
   return data;
 }
 
-Future<String> addImageforPlace(
-  String pid,
-  String name
-  ) async {
+Future<String> addImageforPlace(String pid, String name) async {
   Uri url = Uri.parse(
       'https://bdtravel.comsciproject.net/buddy_travel/api/addPhoto_list.php');
-  var response = await http.post(url,body: {
-    'pid' : pid,
-    'image' : 'https://bdtravel.comsciproject.net/buddy_travel/Upload/Picture/$name',
+  var response = await http.post(url, body: {
+    'pid': pid,
+    'image':
+        'https://bdtravel.comsciproject.net/buddy_travel/Upload/Picture/$name',
   });
   // ignore: prefer_typing_uninitialized_variables
   var data;
@@ -247,10 +238,7 @@ Future deleteType(String id, String name) async {
   var data;
   Uri url = Uri.parse(
       'https://bdtravel.comsciproject.net/buddy_travel/api/removeType.php');
-  var response = await http.post(url,body: {
-    'ID' : id,
-    'name' : name
-  });
+  var response = await http.post(url, body: {'ID': id, 'name': name});
   // ignore: prefer_typing_uninitialized_variables
   try {
     data = jsonDecode(response.body);
@@ -264,10 +252,7 @@ Future deleteFestival(String id, String name) async {
   var data;
   Uri url = Uri.parse(
       'https://bdtravel.comsciproject.net/buddy_travel/api/removeFestival.php');
-  var response = await http.post(url,body: {
-    'ID' : id,
-    'name' : name
-  });
+  var response = await http.post(url, body: {'ID': id, 'name': name});
   // ignore: prefer_typing_uninitialized_variables
   try {
     data = jsonDecode(response.body);
@@ -281,8 +266,8 @@ Future closePlace(String id) async {
   var data;
   Uri url = Uri.parse(
       'https://bdtravel.comsciproject.net/buddy_travel/api/closePlace.php');
-  var response = await http.post(url,body: {
-    'id' : id,
+  var response = await http.post(url, body: {
+    'id': id,
   });
   // ignore: prefer_typing_uninitialized_variables
   try {
@@ -302,4 +287,19 @@ UploadImagePlace(String fileImage, String imgName) async {
           'https://bdtravel.comsciproject.net/buddy_travel/api/uploadImageProfile.php',
           data: formData)
       .then((value) => print("Response ==> $value"));
+}
+
+Future edit_type_festival(String type, String id, String name) async {
+  var data;
+  Uri url = Uri.parse(
+      'https://bdtravel.comsciproject.net/buddy_travel/api/editTypeFes.php');
+  var response =
+      await http.post(url, body: {'type': type, 'id': id, 'name': name});
+  // ignore: prefer_typing_uninitialized_variables
+  try {
+    data = jsonDecode(response.body);
+  } catch (e) {
+    print(e);
+  }
+  return data;
 }
