@@ -1,6 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:projectbdtravel/API/apiFavorite.dart';
 import 'package:projectbdtravel/API/apiPlace.dart';
 import 'package:projectbdtravel/Page/profile.page.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
@@ -36,6 +37,11 @@ class _DetailPlaceState extends State<DetailPlace> {
 
   String id_me = '';
 
+  List dropdownFavorite = [];
+  List<String> dropdownFavoriteName = [];
+  String select = '';
+  String select_id = '';
+
   late GoogleMapController _controller;
   late Marker marker;
   List<Marker> markers = <Marker>[];
@@ -47,6 +53,24 @@ class _DetailPlaceState extends State<DetailPlace> {
     super.initState();
     getDetailPlace();
     getME();
+  }
+
+  Future getlistDD(String id) async {
+    var data = await dropdown_Favorite(id);
+    if (data == "FASLE") {
+      dropdownFavorite.clear();
+      dropdownFavoriteName.clear();
+    } else {
+      dropdownFavorite = data;
+      setState(() {
+        select_id = dropdownFavorite[0]['id'];
+      });
+
+      for (int i = 0; i < data.length; i++) {
+        dropdownFavoriteName.add(data[i]['name']);
+      }
+    }
+    return dropdownFavoriteName;
   }
 
   Future getDetailPlace() async {
@@ -93,6 +117,7 @@ class _DetailPlaceState extends State<DetailPlace> {
     setState(() {
       id_me = _prefs.getString('id').toString();
     });
+    getlistDD(id_me);
   }
 
   void _onMapCreate(GoogleMapController controller) {
@@ -162,6 +187,87 @@ class _DetailPlaceState extends State<DetailPlace> {
     );
   }
 
+  DropdownMenu dd_Favorite() {
+    return DropdownMenu<String>(
+      initialSelection: dropdownFavoriteName.first,
+      onSelected: (String? value) {
+        for (int i = 0; i < dropdownFavorite.length; i++) {
+          if (value == dropdownFavorite[i]['name']) {
+            setState(() {
+              select_id = dropdownFavorite[i]['id'];
+            });
+          }
+        }
+        // This is called when the user selects an item.
+        setState(() {
+          select = value!;
+        });
+      },
+      width: 230,
+      dropdownMenuEntries:
+          dropdownFavoriteName.map<DropdownMenuEntry<String>>((String value) {
+        return DropdownMenuEntry<String>(value: value, label: value);
+      }).toList(),
+    );
+  }
+
+  Future<void> _showMyDialogSelect() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('เพิ่มลงในรายการโปรด'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('เลือกชื่อรายการที่จะเพิ่ม :'),
+                dd_Favorite(),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  ElevatedButton(
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStatePropertyAll(
+                              Color.fromARGB(255, 127, 97, 248))),
+                      onPressed: () async {
+                        String value = await add_PlaceFavorite(
+                            "ADD", select_id, widget.id);
+
+                        if (value == "TRUE") {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('เพิ่มรายการสำเร็จ')));
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('เพิ่มรายการไม่สำเร็จ')));
+                        }
+                      },
+                      child: Text('ตกลง')),
+                  ElevatedButton(
+                      style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStatePropertyAll(Colors.red)),
+                      onPressed: () async {
+                        Navigator.pop(context);
+                      },
+                      child: Text('ยกเลิก')),
+                ],
+              ),
+            )
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     double w = displayWidth(context);
@@ -177,17 +283,19 @@ class _DetailPlaceState extends State<DetailPlace> {
             width: w,
             child: Stack(
               children: [
-                PageView.builder(
-                    itemCount: img.length,
-                    pageSnapping: true,
-                    padEnds: false,
-                    itemBuilder: (context, pagePosition) {
-                      return Container(
-                          child: Image.network(
-                        img[pagePosition],
-                        fit: BoxFit.fitHeight,
-                      ));
-                    }),
+                Scrollbar(
+                  child: PageView.builder(
+                      itemCount: img.length,
+                      pageSnapping: true,
+                      padEnds: false,
+                      itemBuilder: (context, pagePosition) {
+                        return Container(
+                            child: Image.network(
+                          img[pagePosition],
+                          fit: BoxFit.fitHeight,
+                        ));
+                      }),
+                ),
                 Positioned(
                   left: w * 0.02,
                   top: h * 0.02,
@@ -278,7 +386,9 @@ class _DetailPlaceState extends State<DetailPlace> {
                             fontSize: w * 0.05, fontWeight: FontWeight.bold),
                       ),
                       IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          _showMyDialogSelect();
+                        },
                         icon: Icon(Icons.bookmark_border,
                             color: Color.fromARGB(122, 116, 63, 238)),
                       ),
@@ -426,104 +536,120 @@ class _DetailPlaceState extends State<DetailPlace> {
                         ),
                         Container(
                             padding: EdgeInsets.only(bottom: 10, top: 5),
-                            child: ListView(
-                              children: [
-                                for (int i = 0; i < len_review; i++)
-                                  ListTile(
-                                    leading: InkWell(
-                                      onTap: () {
-                                        if (detail['P_Review'][i]['R_MID'] ==
-                                            id_me) {
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) => Profile(
-                                                      id: detail['P_Review'][i]
-                                                          ['R_MID'],
-                                                      info: 'me')));
-                                        } else {
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) => Profile(
-                                                      id: detail['P_Review'][i]
-                                                          ['R_MID'],
-                                                      info: 'other')));
-                                        }
-                                      },
-                                      child: CircleAvatar(
-                                        radius: 25,
-                                        backgroundImage: NetworkImage(
-                                            detail['P_Review'][i]['R_Image'],
-                                            scale: 1.0),
-                                      ),
-                                    ),
-                                    title: Wrap(
-                                      alignment: WrapAlignment.start,
-                                      crossAxisAlignment:
-                                          WrapCrossAlignment.center,
-                                      children: [
-                                        Text(detail['P_Review'][i]['R_Name'] +
-                                            ' ' +
-                                            detail['P_Review'][i]['R_Point']),
-                                        Icon(
-                                          Icons.star,
-                                          color: Colors.yellow,
-                                        )
-                                      ],
-                                    ),
-                                    subtitle: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(detail['P_Review'][i]['R_Text']),
-                                        Container(
-                                          height: detail["P_Review"][i]
-                                                          ["R_ImageReview"]
-                                                      .length <=
-                                                  0
-                                              ? 0
-                                              : detail["P_Review"][i]
-                                                              ["R_ImageReview"]
-                                                          .length <
-                                                      4
-                                                  ? h * 0.275
-                                                  : h * 0.65,
-                                          child: GridView.count(
-                                            // Create a grid with 2 columns. If you change the scrollDirection to
-                                            // horizontal, this produces 2 rows.
-                                            crossAxisCount: 3,
-                                            // Generate 100 widgets that display their index in the List.
-                                            children: List.generate(
-                                                detail["P_Review"][i]
-                                                        ["R_ImageReview"]
-                                                    .length, (index) {
-                                              return Padding(
-                                                padding: EdgeInsets.all(5),
-                                                child: Image(
-                                                  fit: BoxFit.fill,
-                                                  image: NetworkImage(
-                                                      detail["P_Review"][i]
-                                                              ["R_ImageReview"]
-                                                          [index],
-                                                      scale: 1.0),
-                                                ),
-                                              );
-                                            }),
-                                          ),
+                            child: Scrollbar(
+                              child: ListView(
+                                children: [
+                                  for (int i = 0; i < len_review; i++)
+                                    ListTile(
+                                      leading: InkWell(
+                                        onTap: () async {
+                                          if (detail['P_Review'][i]['R_MID'] ==
+                                              id_me) {
+                                            String value = await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        Profile(
+                                                            id: detail[
+                                                                    'P_Review']
+                                                                [i]['R_MID'],
+                                                            info: 'me')));
+                                            if (value == "TRUE") {
+                                              setState(() {
+                                                getDetailPlace();
+                                              });
+                                            }
+                                          } else {
+                                            String value = await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        Profile(
+                                                            id: detail[
+                                                                    'P_Review']
+                                                                [i]['R_MID'],
+                                                            info: 'other')));
+                                            if (value == "TRUE") {
+                                              setState(() {
+                                                getDetailPlace();
+                                              });
+                                            }
+                                          }
+                                        },
+                                        child: CircleAvatar(
+                                          radius: 25,
+                                          backgroundImage: NetworkImage(
+                                              detail['P_Review'][i]['R_Image'],
+                                              scale: 1.0),
                                         ),
-                                        Padding(padding: EdgeInsets.all(10))
-                                      ],
+                                      ),
+                                      title: Wrap(
+                                        alignment: WrapAlignment.start,
+                                        crossAxisAlignment:
+                                            WrapCrossAlignment.center,
+                                        children: [
+                                          Text(detail['P_Review'][i]['R_Name'] +
+                                              ' ' +
+                                              detail['P_Review'][i]['R_Point']),
+                                          Icon(
+                                            Icons.star,
+                                            color: Colors.yellow,
+                                          )
+                                        ],
+                                      ),
+                                      subtitle: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(detail['P_Review'][i]['R_Text']),
+                                          Container(
+                                            height: detail["P_Review"][i]
+                                                            ["R_ImageReview"]
+                                                        .length <=
+                                                    0
+                                                ? 0
+                                                : detail["P_Review"][i][
+                                                                "R_ImageReview"]
+                                                            .length <
+                                                        4
+                                                    ? h * 0.275
+                                                    : h * 0.65,
+                                            child: GridView.count(
+                                              // Create a grid with 2 columns. If you change the scrollDirection to
+                                              // horizontal, this produces 2 rows.
+                                              crossAxisCount: 3,
+                                              // Generate 100 widgets that display their index in the List.
+                                              children: List.generate(
+                                                  detail["P_Review"][i]
+                                                          ["R_ImageReview"]
+                                                      .length, (index) {
+                                                return Padding(
+                                                  padding: EdgeInsets.all(5),
+                                                  child: Image(
+                                                    fit: BoxFit.fill,
+                                                    image: NetworkImage(
+                                                        detail["P_Review"][i][
+                                                                "R_ImageReview"]
+                                                            [index],
+                                                        scale: 1.0),
+                                                  ),
+                                                );
+                                              }),
+                                            ),
+                                          ),
+                                          Padding(padding: EdgeInsets.all(10))
+                                        ],
+                                      ),
+                                      trailing: id_me ==
+                                              detail['P_Review'][i]['R_MID']
+                                          ? IconButton(
+                                              onPressed: () {},
+                                              icon: Icon(Icons.edit))
+                                          : null,
                                     ),
-                                    trailing:
-                                        id_me == detail['P_Review'][i]['R_MID']
-                                            ? IconButton(
-                                                onPressed: () {},
-                                                icon: Icon(Icons.edit))
-                                            : null,
-                                  ),
-                                Divider(height: 0),
-                              ],
+                                  Divider(height: 0),
+                                ],
+                              ),
                             )),
                       ]))
                 ]),

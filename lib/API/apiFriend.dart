@@ -1,9 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
-
-import 'package:dio/dio.dart';
 import 'package:dio/dio.dart' as dio;
-import 'package:email_validator/email_validator.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 
@@ -32,10 +28,16 @@ Future remove_Friend(String id, String fr_id) async {
 }
 
 Future cancel_Friend(String id, String fr_id) async {
-  Uri url = Uri.parse(
-      'https://bdtravel.comsciproject.net/buddy_travel/api/cancel_friend.php');
-  var response = await http.post(url, body: {'id': id, 'fr_id': fr_id});
-  var data = jsonDecode(response.body);
+  var data;
+  try {
+    Uri url = Uri.parse(
+        'https://bdtravel.comsciproject.net/buddy_travel/api/cancel_friend.php');
+    var response = await http.post(url, body: {'id': id, 'fr_id': fr_id});
+    data = jsonDecode(response.body);
+  } catch (e) {
+    print(e);
+  }
+
   return data;
 }
 

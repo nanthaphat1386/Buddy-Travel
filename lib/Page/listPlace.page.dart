@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hexcolor/hexcolor.dart';
 import 'package:projectbdtravel/API/apiPlace.dart';
 import 'package:projectbdtravel/Page/addPlace.page.dart';
 import 'package:projectbdtravel/Page/detailPlace.page.dart';
@@ -55,7 +56,7 @@ class _listPlaceState extends State<listPlace> {
     return Scaffold(
         appBar: AppBar(
           title: Text('สถานที่'),
-          backgroundColor: Color.fromARGB(122, 116, 63, 238),
+          backgroundColor: HexColor('#9C9AFC'),
           actions: [
             IconButton(
                 onPressed: () async {
@@ -70,7 +71,7 @@ class _listPlaceState extends State<listPlace> {
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          backgroundColor: Color.fromARGB(150, 116, 63, 238),
+          backgroundColor: HexColor('#859C9AFC'),
           onPressed: () {},
           shape: CircleBorder(),
           child: const Icon(Icons.search),
@@ -88,208 +89,210 @@ class _listPlaceState extends State<listPlace> {
                     if (ConnectionState.active != null && !snapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    return ListView.builder(
-                        itemCount: Place.length,
-                        itemBuilder: (BuildContext buildContext, int index) {
-                          return Padding(
-                            padding: const EdgeInsets.only(
-                                left: 5, right: 5, top: 3),
-                            child: Card(
-                              clipBehavior: Clip.antiAlias,
-                              child: Column(
-                                children: [
-                                  Container(
-                                    height: h * 0.75,
-                                    width: w,
-                                    child: CarouselSlider(
-                                        items: len_img[index],
-                                        options: CarouselOptions(
-                                          height: h * 1.25,
-                                          aspectRatio: 16 / 9,
-                                          viewportFraction: 0.8,
-                                          initialPage: 0,
-                                          enableInfiniteScroll: true,
-                                          reverse: false,
-                                          autoPlay: false,
-                                          //autoPlayInterval: Duration(seconds: 3),
-                                          //autoPlayAnimationDuration: Duration(milliseconds: 800),
-                                          autoPlayCurve: Curves.fastOutSlowIn,
-                                          enlargeCenterPage: true,
-                                          scrollDirection: Axis.horizontal,
-                                        )),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.all(10),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Container(
-                                          child: Text(
-                                            Place[index]['P_Name'],
-                                            style: TextStyle(
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18),
-                                          ),
+                    return Scrollbar(
+                        child: ListView.builder(
+                            itemCount: Place.length,
+                            itemBuilder:
+                                (BuildContext buildContext, int index) {
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 5, right: 5, top: 3),
+                                child: Card(
+                                  clipBehavior: Clip.antiAlias,
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        height: h * 0.75,
+                                        width: w,
+                                        child: CarouselSlider(
+                                            items: len_img[index],
+                                            options: CarouselOptions(
+                                              height: h * 1.25,
+                                              aspectRatio: 16 / 9,
+                                              viewportFraction: 0.8,
+                                              initialPage: 0,
+                                              enableInfiniteScroll: true,
+                                              reverse: false,
+                                              autoPlay: false,
+                                              //autoPlayInterval: Duration(seconds: 3),
+                                              //autoPlayAnimationDuration: Duration(milliseconds: 800),
+                                              autoPlayCurve:
+                                                  Curves.fastOutSlowIn,
+                                              enlargeCenterPage: true,
+                                              scrollDirection: Axis.horizontal,
+                                            )),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.all(10),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Container(
+                                              child: Text(
+                                                Place[index]['P_Name'],
+                                                style: TextStyle(
+                                                    color: Colors.black,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 18),
+                                              ),
+                                            ),
+                                            Container(
+                                              child: Row(
+                                                children: [
+                                                  Text(Place[index]
+                                                          ['P_CountReview'] +
+                                                      ' '),
+                                                  Icon(
+                                                    Icons.reviews,
+                                                    color: HexColor('#9C9AFC'),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        Container(
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                            10, 2, 10, 2),
+                                        child: Container(
                                           child: Row(
                                             children: [
-                                              Text(Place[index]
-                                                      ['P_CountReview'] +
-                                                  ' '),
-                                              Icon(
-                                                Icons.reviews,
-                                                color: Color.fromARGB(
-                                                    176, 116, 63, 238),
+                                              Text(
+                                                'ประเภท ',
+                                                style: TextStyle(
+                                                    fontSize: 15,
+                                                    color: Colors.black),
                                               ),
+                                              for (int i = 0;
+                                                  i <
+                                                      Place[index]['P_Type']
+                                                          .length;
+                                                  i++)
+                                                Wrap(
+                                                  children: [
+                                                    Padding(
+                                                      padding: EdgeInsets.only(
+                                                          right: 5),
+                                                      child: box(Place[index]
+                                                          ['P_Type'][i]),
+                                                    )
+                                                  ],
+                                                ),
+                                              //
                                             ],
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding:
-                                        const EdgeInsets.fromLTRB(10, 2, 10, 2),
-                                    child: Container(
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            'ประเภท ',
-                                            style: TextStyle(
-                                                fontSize: 15,
-                                                color: Color.fromARGB(
-                                                    255, 0, 0, 0)),
-                                          ),
-                                          for (int i = 0;
-                                              i < Place[index]['P_Type'].length;
-                                              i++)
-                                            Wrap(
-                                              children: [
-                                                Padding(
-                                                  padding:
-                                                      EdgeInsets.only(right: 5),
-                                                  child: box(Place[index]
-                                                      ['P_Type'][i]),
-                                                )
-                                              ],
-                                            ),
-                                          //
-                                        ],
                                       ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding:
-                                        const EdgeInsets.fromLTRB(10, 2, 10, 2),
-                                    child: Container(
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            'เทศกาล ',
-                                            style: TextStyle(
-                                                fontSize: 15,
-                                                color: Color.fromARGB(
-                                                    255, 0, 0, 0)),
-                                          ),
-                                          for (int i = 0;
-                                              i <
-                                                  Place[index]['P_Festival']
-                                                      .length;
-                                              i++)
-                                            Wrap(
-                                              children: [
-                                                Padding(
-                                                  padding:
-                                                      EdgeInsets.only(right: 5),
-                                                  child: box(Place[index]
-                                                      ['P_Festival'][i]),
-                                                ),
-                                              ],
-                                            )
-                                          //
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  Row(
-                                    children: [
-                                      Expanded(
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                            10, 2, 10, 2),
+                                        child: Container(
                                           child: Row(
-                                        children: [
-                                          Padding(
-                                            padding:
-                                                const EdgeInsets.only(left: 5),
-                                            child: Icon(
-                                              Icons.location_on_outlined,
-                                              size: 20,
-                                            ),
-                                          ),
-                                          Container(
-                                            padding: EdgeInsets.only(left: 2),
-                                            alignment: Alignment.topLeft,
-                                            child: Text(
-                                              address[index],
-                                              textAlign: TextAlign.left,
-                                              style: TextStyle(
-                                                  color: Colors.black
-                                                      .withOpacity(0.6),
-                                                  fontSize: 15),
-                                            ),
-                                          ),
-                                        ],
-                                      )),
-                                      Container(
-                                        padding: EdgeInsets.all(5),
-                                        alignment: Alignment(1, -1),
-                                        child: ButtonTheme(
-                                          minWidth: 0.35 * w,
-                                          height: 0.075 * h,
-                                          child: ElevatedButton(
-                                            onPressed: () async{
-                                             String ans = await Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          DetailPlace(
-                                                              id: Place[index]
-                                                                  ['P_ID'])));
-                                            if(ans == 'TRUE'){
-                                              allPlace();
-                                              setState(() {
-                                                
-                                              });
-                                            }else {
-                                              allPlace();
-                                              setState(() {
-                                                
-                                              });
-                                            }
-                                            },
-                                            child: const Text(
-                                              'เยี่ยมชม',
-                                            ),
-                                            style: ElevatedButton.styleFrom(
-                                                primary: Color.fromARGB(
-                                                    176, 116, 63, 238),
-                                                padding: EdgeInsets.symmetric(
-                                                    horizontal: 30,
-                                                    vertical: 10),
-                                                textStyle: TextStyle(
-                                                  fontSize: 15,
-                                                )),
+                                            children: [
+                                              Text(
+                                                'เทศกาล ',
+                                                style: TextStyle(
+                                                    fontSize: 15,
+                                                    color: Colors.black),
+                                              ),
+                                              for (int i = 0;
+                                                  i <
+                                                      Place[index]['P_Festival']
+                                                          .length;
+                                                  i++)
+                                                Wrap(
+                                                  children: [
+                                                    Padding(
+                                                      padding: EdgeInsets.only(
+                                                          right: 5),
+                                                      child: box(Place[index]
+                                                          ['P_Festival'][i]),
+                                                    ),
+                                                  ],
+                                                )
+                                              //
+                                            ],
                                           ),
                                         ),
-                                      )
+                                      ),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                              child: Row(
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    left: 5),
+                                                child: Icon(
+                                                  Icons.location_on_outlined,
+                                                  size: 20,
+                                                ),
+                                              ),
+                                              Container(
+                                                padding:
+                                                    EdgeInsets.only(left: 2),
+                                                alignment: Alignment.topLeft,
+                                                child: Text(
+                                                  address[index],
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                      color: Colors.black
+                                                          .withOpacity(0.6),
+                                                      fontSize: 15),
+                                                ),
+                                              ),
+                                            ],
+                                          )),
+                                          Container(
+                                            padding: EdgeInsets.all(5),
+                                            alignment: Alignment(1, -1),
+                                            child: ButtonTheme(
+                                              minWidth: 0.35 * w,
+                                              height: 0.075 * h,
+                                              child: ElevatedButton(
+                                                onPressed: () async {
+                                                  String ans = await Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              DetailPlace(
+                                                                  id: Place[
+                                                                          index]
+                                                                      [
+                                                                      'P_ID'])));
+                                                  if (ans == 'TRUE') {
+                                                    allPlace();
+                                                    setState(() {});
+                                                  } else {
+                                                    allPlace();
+                                                    setState(() {});
+                                                  }
+                                                },
+                                                child: const Text(
+                                                  'เยี่ยมชม',
+                                                ),
+                                                style: ElevatedButton.styleFrom(
+                                                    primary:
+                                                        HexColor('#9C9AFC'),
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                            horizontal: 30,
+                                                            vertical: 10),
+                                                    textStyle: TextStyle(
+                                                      fontSize: 15,
+                                                    )),
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
                                     ],
                                   ),
-                                ],
-                              ),
-                            ),
-                          );
-                        });
+                                ),
+                              );
+                            }));
                   }),
             )
           ],
@@ -306,7 +309,7 @@ class _listPlaceState extends State<listPlace> {
       //width: 0.15 * w,
       height: 0.075 * h,
       alignment: Alignment.center,
-      decoration: myBoxDecoration(Color.fromARGB(176, 116, 63, 238)),
+      decoration: myBoxDecoration(HexColor('#9C9AFC')),
       child: Text(
         str,
         textAlign: TextAlign.center,

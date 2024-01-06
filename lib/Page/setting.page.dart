@@ -193,6 +193,7 @@ class _settingsState extends State<settings> {
                               color: Colors.transparent, width: 3.0)),
                       child: CircleAvatar(
                         radius: w * 0.25,
+                        backgroundColor: Colors.transparent,
                         backgroundImage: NetworkImage(img, scale: 1.0),
                       ),
                     )

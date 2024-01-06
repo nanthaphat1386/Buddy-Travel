@@ -19,6 +19,9 @@ class _DeleteObjectState extends State<DeleteObject> {
   String str_type = '';
   String str_fes = '';
 
+  String change_type = '';
+  String change_fes = '';
+
   @override
   void initState() {
     // TODO: implement initState
@@ -28,6 +31,7 @@ class _DeleteObjectState extends State<DeleteObject> {
   }
 
   void getAutoType() async {
+    auto_type.clear();
     Type = await getType();
     for (int i = 0; i < Type.length; i++) {
       setState(() {
@@ -37,6 +41,7 @@ class _DeleteObjectState extends State<DeleteObject> {
   }
 
   void getAutoFestival() async {
+    auto_fes.cast();
     Festival = await getFestival();
     for (int i = 0; i < Festival.length; i++) {
       setState(() {
@@ -65,6 +70,24 @@ class _DeleteObjectState extends State<DeleteObject> {
     }
     print(process);
     return process;
+  }
+
+  String transitID(String str, String name) {
+    String ans = '';
+    if (str == "type") {
+      for (int i = 0; i < Type.length; i++) {
+        if (Type[i]['T_Name'].toString() == name) {
+          ans = Type[i]['T_ID'];
+        }
+      }
+    } else {
+      for (int i = 0; i < Festival.length; i++) {
+        if (Festival[i]['F_Name'].toString() == name) {
+          ans = Festival[i]['F_ID'];
+        }
+      }
+    }
+    return ans;
   }
 
   Future<void> _showMyDialog(String ans) async {
@@ -98,6 +121,86 @@ class _DeleteObjectState extends State<DeleteObject> {
                   },
                   child: Text('ตกลง')),
             )
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showMyDialogEdit(String ans) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(ans == 'Type' ? 'แก้ไขประเภทสถานที่' : 'แก้ไขเทศกาล'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('กรอกข้อมูลที่ต้องการแก้ไข'),
+                TextField(
+                  onChanged: (value) {
+                    ans == "Type" ? change_type = value : change_fes = value;
+                  },
+                  decoration: InputDecoration(
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                        borderSide: BorderSide(
+                            width: 1,
+                            color: Color.fromARGB(255, 189, 124, 246))),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                        borderSide: BorderSide(
+                            width: 1,
+                            color: Color.fromARGB(255, 189, 124, 246))),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            Center(
+                child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                ElevatedButton(
+                    style: ButtonStyle(
+                        backgroundColor: MaterialStatePropertyAll(
+                            Color.fromARGB(255, 127, 97, 248))),
+                    onPressed: () async {
+                      String str = transitID(
+                          ans == "Type" ? "type" : "festival",
+                          ans == "Type" ? str_type : str_fes);
+                      var value = await edit_type_festival(
+                          ans == "Type" ? "type" : "festival",
+                          str,
+                          ans == "Type" ? change_type : change_fes);
+                      if (value == "TRUE") {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('แก้ไขข้อมูลสำเร็จ')));
+                        setState(() {
+                          getAutoType();
+                          getAutoFestival();
+                        });
+                        Navigator.pop(context);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('มีข้อมูลในระบบแล้ว')));
+                      }
+                    },
+                    child: Text('ตกลง')),
+                ElevatedButton(
+                    style: ButtonStyle(
+                        backgroundColor: MaterialStatePropertyAll(
+                            Color.fromARGB(171, 247, 73, 64))),
+                    onPressed: () async {
+                      Navigator.pop(context);
+                    },
+                    child: Text('ยกเลิก')),
+              ],
+            )),
           ],
         );
       },
@@ -201,6 +304,14 @@ class _DeleteObjectState extends State<DeleteObject> {
               ElevatedButton(
                   style: ButtonStyle(
                       backgroundColor:
+                          MaterialStatePropertyAll(Colors.blueAccent)),
+                  onPressed: () async {
+                    _showMyDialogEdit("Type");
+                  },
+                  child: Text('แก้ไขประเภทสถานที่')),
+              ElevatedButton(
+                  style: ButtonStyle(
+                      backgroundColor:
                           MaterialStatePropertyAll(Colors.redAccent)),
                   onPressed: () async {
                     String ans = await removeType(str_type);
@@ -235,6 +346,14 @@ class _DeleteObjectState extends State<DeleteObject> {
               ElevatedButton(
                   style: ButtonStyle(
                       backgroundColor:
+                          MaterialStatePropertyAll(Colors.blueAccent)),
+                  onPressed: () async {
+                    _showMyDialogEdit("Festival");
+                  },
+                  child: Text('แก้ไขเทศกาล')),
+              ElevatedButton(
+                  style: ButtonStyle(
+                      backgroundColor:
                           MaterialStatePropertyAll(Colors.redAccent)),
                   onPressed: () async {
                     String ans = await removeFestival(str_fes);
@@ -258,7 +377,7 @@ class _DeleteObjectState extends State<DeleteObject> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('ลบข้อมูล'),
+          title: Text('แก้ไข/ลบข้อมูล'),
           backgroundColor: Color.fromARGB(122, 116, 63, 238),
           leading: IconButton(
               onPressed: () {
