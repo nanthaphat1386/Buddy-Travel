@@ -152,7 +152,7 @@ class _ProfileState extends State<Profile> {
                                           setState(() {
                                             status = '2';
                                           });
-                                        }else if(data == "FRIEND"){
+                                        } else if (data == "FRIEND") {
                                           setState(() {
                                             status = 'friend';
                                           });
@@ -331,6 +331,17 @@ class _ProfileState extends State<Profile> {
                                                   ));
                                                 }),
                                           )),
+                                      Container(
+                                        alignment: Alignment.centerLeft,
+                                        padding: EdgeInsets.only(top: 5),
+                                        width: w * 0.65,
+                                        child: Text(
+                                          'วันที่ ' +
+                                              data[index]['date'].toString(),
+                                          style:
+                                              TextStyle(color: Colors.black54),
+                                        ),
+                                      ),
                                       Padding(
                                         padding: EdgeInsets.all(5),
                                         child: Container(
