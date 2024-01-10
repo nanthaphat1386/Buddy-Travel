@@ -263,11 +263,13 @@ class _listPlaceState extends State<listPlace> {
                                                                       [
                                                                       'P_ID'])));
                                                   if (ans == 'TRUE') {
-                                                    allPlace();
-                                                    setState(() {});
+                                                    setState(() {
+                                                      allPlace();
+                                                    });
                                                   } else {
-                                                    allPlace();
-                                                    setState(() {});
+                                                    setState(() {
+                                                      allPlace();
+                                                    });
                                                   }
                                                 },
                                                 child: const Text(

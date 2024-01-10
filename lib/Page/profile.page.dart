@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:projectbdtravel/API/apiFriend.dart';
+import 'package:projectbdtravel/API/apiPost.dart';
 import 'package:projectbdtravel/API/apiUser.dart';
+import 'package:projectbdtravel/Page/detailPlace.page.dart';
+import 'package:projectbdtravel/Page/timeline.page.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
 import 'package:projectbdtravel/Tools/style.tools.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+enum SampleItem { itemOne, itemTwo }
 
 class Profile extends StatefulWidget {
   final String id;
@@ -17,6 +22,8 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+  SampleItem? selectedMenu;
+
   List data = [];
   String id = '';
   String img = '';
@@ -73,6 +80,62 @@ class _ProfileState extends State<Profile> {
         status = '2';
       });
     }
+  }
+
+  Future<void> _showMyDialogDeleteCheckin(String cid) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('แจ้งเตือน'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('ต้องการลบการเช็คอินออกใช่หรือไม่'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  ElevatedButton(
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStatePropertyAll(
+                              Color.fromARGB(255, 127, 97, 248))),
+                      onPressed: () async {
+                        String value = await delete_Checkin("remove", cid);
+                        if (value == "TRUE") {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('ลบข้อมูลสำเร็จ')));
+                          setState(() {
+                            Profile_info(widget.id);
+                          });
+                          Navigator.pop(context);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('ลบข้อมูลไม่สำเร็จ')));
+                        }
+                      },
+                      child: Text('ยืนยัน')),
+                  ElevatedButton(
+                      style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStatePropertyAll(Colors.red)),
+                      onPressed: () async {
+                        Navigator.pop(context);
+                      },
+                      child: Text('ยกเลิก')),
+                ],
+              ),
+            )
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -269,34 +332,132 @@ class _ProfileState extends State<Profile> {
                                                   crossAxisAlignment:
                                                       CrossAxisAlignment.center,
                                                   children: [
-                                                    Text(
-                                                      data[index]
-                                                          ['Profile_Name'],
-                                                      style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold),
-                                                    ),
-                                                    Row(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .center,
-                                                      children: [
-                                                        Icon(
-                                                          Icons.location_on,
-                                                          color: Colors.black38,
-                                                        ),
-                                                        Text(data[index]
-                                                            ['Place_Name'])
-                                                      ],
-                                                    ),
-                                                    SizedBox(
-                                                      width: w * 0.1,
+                                                    Container(
+                                                      width: w * 0.6,
+                                                      child: Row(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Text(
+                                                            data[index]['Profile_Name']
+                                                                        .toString()
+                                                                        .length >
+                                                                    14
+                                                                ? data[index][
+                                                                            'Profile_Name']
+                                                                        .substring(
+                                                                            0,
+                                                                            10) +
+                                                                    '...'
+                                                                : data[index][
+                                                                    'Profile_Name'],
+                                                            style: TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                          ),
+                                                          Icon(
+                                                            Icons.location_on,
+                                                            color:
+                                                                Colors.black38,
+                                                          ),
+                                                          InkWell(
+                                                            onTap: () {
+                                                              Navigator.push(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                      builder: (context) =>
+                                                                          DetailPlace(
+                                                                              id: data[index]['P_ID'])));
+                                                            },
+                                                            child: Text(data[index][
+                                                                            'Place_Name']
+                                                                        .toString()
+                                                                        .length >
+                                                                    10
+                                                                ? data[index][
+                                                                            'Place_Name']
+                                                                        .substring(
+                                                                            0,
+                                                                            10) +
+                                                                    '...'
+                                                                : data[index][
+                                                                    'Place_Name']),
+                                                          )
+                                                        ],
+                                                      ),
                                                     ),
                                                     widget.info == 'me'
-                                                        ? IconButton(
-                                                            onPressed: () {},
-                                                            icon: Icon(Icons
-                                                                .edit_note))
+                                                        ? Container(
+                                                            decoration:
+                                                                BoxDecoration(
+                                                                    color: Color
+                                                                        .fromARGB(
+                                                                            132,
+                                                                            255,
+                                                                            255,
+                                                                            255)),
+                                                            child:
+                                                                PopupMenuButton<
+                                                                    SampleItem>(
+                                                              initialValue:
+                                                                  selectedMenu,
+                                                              // Callback that sets the selected popup menu item.
+                                                              onSelected:
+                                                                  (SampleItem
+                                                                      item) async {
+                                                                setState(() {
+                                                                  selectedMenu =
+                                                                      item;
+                                                                });
+                                                                if (selectedMenu ==
+                                                                    SampleItem
+                                                                        .itemTwo) {
+                                                                  _showMyDialogDeleteCheckin(
+                                                                      data[index]
+                                                                          [
+                                                                          'C_ID']);
+                                                                } else if (selectedMenu ==
+                                                                    SampleItem
+                                                                        .itemOne) {
+                                                                  String value = await Navigator.push(
+                                                                      context,
+                                                                      MaterialPageRoute(
+                                                                          builder: (context) =>
+                                                                              EditCheckin(cid: data[index]['C_ID'])));
+                                                                  if (value ==
+                                                                      "TRUE") {
+                                                                    setState(
+                                                                        () {
+                                                                      getProfile();
+                                                                    });
+                                                                  }
+                                                                }
+                                                              },
+                                                              itemBuilder: (BuildContext
+                                                                      context) =>
+                                                                  <PopupMenuEntry<
+                                                                      SampleItem>>[
+                                                                const PopupMenuItem<
+                                                                    SampleItem>(
+                                                                  value: SampleItem
+                                                                      .itemOne,
+                                                                  child: Text(
+                                                                    'แก้ไข',
+                                                                  ),
+                                                                ),
+                                                                const PopupMenuItem<
+                                                                    SampleItem>(
+                                                                  value: SampleItem
+                                                                      .itemTwo,
+                                                                  child: Text(
+                                                                    'ลบ',
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          )
                                                         : Container(),
                                                   ],
                                                 ),
@@ -314,7 +475,10 @@ class _ProfileState extends State<Profile> {
                                       Container(
                                           alignment: Alignment.center,
                                           width: w * 0.65,
-                                          height: h * 0.165,
+                                          height:
+                                              data[index]['C_Image'].length == 0
+                                                  ? 0
+                                                  : h * 0.165,
                                           child: Scrollbar(
                                             showTrackOnHover: true,
                                             child: PageView.builder(

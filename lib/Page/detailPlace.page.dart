@@ -1,8 +1,12 @@
-import 'package:carousel_slider/carousel_slider.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:hexcolor/hexcolor.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:projectbdtravel/API/apiFavorite.dart';
 import 'package:projectbdtravel/API/apiPlace.dart';
+import 'package:projectbdtravel/API/apiPost.dart';
 import 'package:projectbdtravel/Page/profile.page.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,6 +41,9 @@ class _DetailPlaceState extends State<DetailPlace> {
 
   String id_me = '';
 
+  List<XFile>? imageFileList = [];
+  final ImagePicker imagePicker = ImagePicker();
+
   List dropdownFavorite = [];
   List<String> dropdownFavoriteName = [];
   String select = '';
@@ -61,14 +68,16 @@ class _DetailPlaceState extends State<DetailPlace> {
       dropdownFavorite.clear();
       dropdownFavoriteName.clear();
     } else {
-      dropdownFavorite = data;
-      setState(() {
-        select_id = dropdownFavorite[0]['id'];
-      });
+      try {
+        dropdownFavorite = data;
+        setState(() {
+          select_id = dropdownFavorite[0]['id'];
+        });
 
-      for (int i = 0; i < data.length; i++) {
-        dropdownFavoriteName.add(data[i]['name']);
-      }
+        for (int i = 0; i < data.length; i++) {
+          dropdownFavoriteName.add(data[i]['name']);
+        }
+      } catch (e) {}
     }
     return dropdownFavoriteName;
   }
@@ -127,6 +136,44 @@ class _DetailPlaceState extends State<DetailPlace> {
   }
 
   Future addReview() async {}
+
+  void selectImages() async {
+    if (imageFileList!.length == 5) {
+      _dialogBuilderFullImage(context);
+    } else {
+      try {
+        final List<XFile>? selectedImages = await imagePicker.pickMultiImage();
+        if (selectedImages!.isNotEmpty) {
+          imageFileList!.addAll(selectedImages);
+        }
+        setState(() {});
+      } catch (e) {}
+    }
+  }
+
+  Future<void> _dialogBuilderFullImage(BuildContext context) {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('คำเตือน'),
+          content: const Text(
+              'รูปภาพครบ 5 รูปแล้ว โปรดลบออกแล้วทำรายการใหม่อีกครั้ง'),
+          actions: <Widget>[
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
+              child: const Text('ตกลง'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Future<void> _showMyDialogDelete() async {
     return showDialog<void>(
@@ -271,7 +318,7 @@ class _DetailPlaceState extends State<DetailPlace> {
   @override
   Widget build(BuildContext context) {
     double w = displayWidth(context);
-    double h = displayWidth(context) -
+    double h = displayHeight(context) -
         MediaQuery.of(context).padding.top -
         kToolbarHeight;
 
@@ -279,7 +326,7 @@ class _DetailPlaceState extends State<DetailPlace> {
       body: ListView(
         children: [
           Container(
-            height: 0.95 * h,
+            height: 0.4 * h,
             width: w,
             child: Stack(
               children: [
@@ -402,7 +449,7 @@ class _DetailPlaceState extends State<DetailPlace> {
                       Padding(
                         padding: EdgeInsets.only(left: w * 0.01),
                         child: Text(
-                          '( ' + len_review.toString() + ' รีวิว)',
+                          '( $len_review รีวิว)',
                           style: TextStyle(
                               fontSize: w * 0.0375,
                               color: Color.fromARGB(255, 116, 115, 115)),
@@ -416,8 +463,8 @@ class _DetailPlaceState extends State<DetailPlace> {
             padding: EdgeInsets.only(
                 left: w * 0.025,
                 right: w * 0.025,
-                top: h * 0.02,
-                bottom: h * 0.02),
+                top: h * 0.01,
+                bottom: h * 0.01),
             child: boxDescription(description),
           ),
           Padding(
@@ -428,27 +475,29 @@ class _DetailPlaceState extends State<DetailPlace> {
               direction: Axis.horizontal,
               runSpacing: 3,
               children: [
-                boxButton(
+                boxButtonReview(
                     'เขียนรีวิว',
                     Icon(
                       Icons.reviews_sharp,
                       color: Colors.white,
                     ),
-                    addReview()),
-                boxButton(
+                    "REVIEW"),
+                boxButtonAddImage(
                     'เพิ่มรูป',
                     Icon(
                       Icons.camera_enhance,
                       color: Colors.white,
                     ),
-                    addReview()),
-                boxButton(
-                    'เช็คอิน',
-                    Icon(
-                      Icons.location_on,
-                      color: Colors.white,
-                    ),
-                    addReview()),
+                    "IMAGE"),
+                boxButtonCheckin(
+                  'เช็คอิน',
+                  Icon(
+                    Icons.location_on,
+                    color: Colors.white,
+                  ),
+                  "CHECKIN",
+                  widget.id,
+                ),
               ],
             ),
           ),
@@ -471,14 +520,14 @@ class _DetailPlaceState extends State<DetailPlace> {
                   ),
                   Container(
                       color: Colors.transparent,
-                      height: h * 1, //height of TabBarView
+                      height: h * 0.525, //height of TabBarView
                       padding: EdgeInsets.only(top: 5),
                       child: TabBarView(children: <Widget>[
                         ListView(
                           children: [
                             Container(
                               margin: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: h * 0.60,
+                              height: h * 0.2,
                               child: Expanded(
                                 child: GoogleMap(
                                   mapType: MapType.normal,
@@ -612,8 +661,8 @@ class _DetailPlaceState extends State<DetailPlace> {
                                                                 "R_ImageReview"]
                                                             .length <
                                                         4
-                                                    ? h * 0.275
-                                                    : h * 0.65,
+                                                    ? h * 0.115
+                                                    : h * 0.23,
                                             child: GridView.count(
                                               // Create a grid with 2 columns. If you change the scrollDirection to
                                               // horizontal, this produces 2 rows.
@@ -686,14 +735,17 @@ class _DetailPlaceState extends State<DetailPlace> {
         ));
   }
 
-  InkWell boxButton(String str, Icon icon, Future onclick) {
+  InkWell boxButtonAddImage(String str, Icon icon, String select) {
     double w = displayWidth(context);
     double h = displayWidth(context) -
         MediaQuery.of(context).padding.top -
         kToolbarHeight;
     return InkWell(
-      onTap: () {
-        onclick;
+      onTap: () async {
+        // String value = await Navigator.push(
+        //     context, MaterialPageRoute(builder: (context) => AddCheckinPage()));
+        // if (value == "TRUE") {
+        // } else {}
       },
       child: Container(
           padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
@@ -707,7 +759,77 @@ class _DetailPlaceState extends State<DetailPlace> {
             children: [
               icon,
               Text(
-                ' ' + str,
+                ' $str',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13.5, color: Colors.white),
+              ),
+            ],
+          )),
+    );
+  }
+
+  InkWell boxButtonReview(String str, Icon icon, String select) {
+    double w = displayWidth(context);
+    double h = displayWidth(context) -
+        MediaQuery.of(context).padding.top -
+        kToolbarHeight;
+    return InkWell(
+      onTap: () async {
+        // String value = await Navigator.push(
+        //     context, MaterialPageRoute(builder: (context) => AddCheckinPage()));
+        // if (value == "TRUE") {
+        // } else {}
+      },
+      child: Container(
+          padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
+          height: 0.13 * h,
+          width: 0.275 * w,
+          alignment: Alignment.center,
+          decoration: myBoxDecoration(Color.fromARGB(122, 116, 63, 238)),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              icon,
+              Text(
+                ' $str',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13.5, color: Colors.white),
+              ),
+            ],
+          )),
+    );
+  }
+
+  InkWell boxButtonCheckin(String str, Icon icon, String select, String pid) {
+    double w = displayWidth(context);
+    double h = displayWidth(context) -
+        MediaQuery.of(context).padding.top -
+        kToolbarHeight;
+    return InkWell(
+      onTap: () async {
+        String value = await Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => AddCheckinPage(
+                      pid: pid,
+                    )));
+        if (value == "TRUE") {
+        } else {}
+      },
+      child: Container(
+          padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
+          height: 0.13 * h,
+          width: 0.275 * w,
+          alignment: Alignment.center,
+          decoration: myBoxDecoration(Color.fromARGB(122, 116, 63, 238)),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              icon,
+              Text(
+                ' $str',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13.5, color: Colors.white),
               ),
@@ -717,10 +839,6 @@ class _DetailPlaceState extends State<DetailPlace> {
   }
 
   Container boxDescription(String str) {
-    double w = displayWidth(context);
-    double h = displayWidth(context) -
-        MediaQuery.of(context).padding.top -
-        kToolbarHeight;
     return Container(
       padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
       alignment: Alignment.topLeft,
@@ -752,5 +870,271 @@ class _DetailPlaceState extends State<DetailPlace> {
       ),
     );
     setState(() {});
+  }
+}
+
+class AddCheckinPage extends StatefulWidget {
+  final String pid;
+  const AddCheckinPage({Key? key, required this.pid}) : super(key: key);
+
+  @override
+  State<AddCheckinPage> createState() => _AddCheckinPageState();
+}
+
+class _AddCheckinPageState extends State<AddCheckinPage> {
+  String id = '';
+  String name = '';
+  String img = '';
+
+  TextEditingController text = new TextEditingController();
+
+  List<XFile>? imageFileList = [];
+  final ImagePicker imagePicker = ImagePicker();
+
+  @override
+  initState() {
+    super.initState();
+    getProfile();
+  }
+
+  getProfile() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      setState(() {
+        img = prefs.getString('image').toString();
+        id = prefs.getString('id').toString();
+        name = prefs.getString('fName').toString() +
+            ' ' +
+            prefs.getString('lName').toString();
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void selectImages() async {
+    if (imageFileList!.length == 5) {
+      _dialogBuilderFullImage(context);
+    } else {
+      try {
+        final List<XFile>? selectedImages = await imagePicker.pickMultiImage();
+        if (selectedImages!.isNotEmpty) {
+          imageFileList!.addAll(selectedImages);
+        }
+        setState(() {});
+      } catch (e) {}
+    }
+  }
+
+  Future uploadImage() async {
+    try {
+      for (int i = 0; i < imageFileList!.length; i++) {
+        UploadImageCheckin(imageFileList![i].path, imageFileList![i].name);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> _dialogBuilderFullImage(BuildContext context) {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('คำเตือน'),
+          content: const Text(
+              'รูปภาพครบ 5 รูปแล้ว โปรดลบออกแล้วทำรายการใหม่อีกครั้ง'),
+          actions: <Widget>[
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
+              child: const Text('ตกลง'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    double w = displayWidth(context);
+    double h = displayHeight(context) -
+        MediaQuery.of(context).padding.top -
+        kToolbarHeight;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('เช็คอินสถานที่'),
+        backgroundColor: HexColor('#9C9AFC'),
+        leading: IconButton(
+            onPressed: () {
+              Navigator.pop(context, "FALSE");
+            },
+            icon: Icon(Icons.close)),
+      ),
+      body: Container(
+          width: w * 1,
+          height: h * 1.1,
+          // decoration: BoxDecoration(color: Colors.black12),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  height: h * 0.025,
+                ),
+                ListTile(
+                    leading: CircleAvatar(
+                      backgroundImage: NetworkImage(img, scale: 1.0),
+                    ),
+                    title: Text('${name}')),
+                Container(
+                  padding: EdgeInsets.all(10),
+                  child: TextField(
+                    controller: text,
+                    maxLines: 4,
+                    // controller: text,
+                    decoration: InputDecoration(
+                      hintText: "ข้อความ",
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                      filled: true,
+                      fillColor: Colors.transparent,
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            width: 1, color: Color.fromARGB(255, 81, 69, 250)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            width: 1, color: Color.fromARGB(255, 81, 69, 250)),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                    padding: EdgeInsets.only(left: 10, right: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        ElevatedButton(
+                            onPressed: () {
+                              selectImages();
+                            },
+                            child: Text('เพิ่มรูปภาพ'),
+                            style: ButtonStyle(
+                                backgroundColor: MaterialStatePropertyAll(
+                                    Color.fromARGB(167, 81, 69, 250)))),
+                        Container(
+                          width: w * 0.65,
+                          height: h * 0.275,
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  width: 1,
+                                  color: Color.fromARGB(255, 81, 69, 250))),
+                          child: Padding(
+                            padding: EdgeInsets.all(10),
+                            child: GridView.builder(
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisSpacing: 0,
+                                mainAxisSpacing: 0,
+                                crossAxisCount: 3,
+                              ),
+                              itemCount: imageFileList!.length,
+                              itemBuilder: (context, index) {
+                                return InkWell(
+                                    splashColor: Colors
+                                        .white10, // Splash color over image
+                                    child: Stack(
+                                      children: [
+                                        Ink.image(
+                                          fit: BoxFit
+                                              .cover, // Fixes border issues
+                                          width: 100,
+                                          height: 100,
+                                          image: FileImage(
+                                              File(imageFileList![index].path)),
+                                        ),
+                                        Align(
+                                          alignment: Alignment.bottomRight,
+                                          child: InkWell(
+                                            onTap: () {
+                                              imageFileList!.removeAt(index);
+                                              setState(() {});
+                                            },
+                                            child: Icon(
+                                              Icons.close,
+                                              color: Colors.red,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ));
+                              },
+                            ),
+                          ),
+                        )
+                      ],
+                    )),
+                SizedBox(
+                  height: h * 0.05,
+                ),
+                Padding(
+                  padding: EdgeInsets.only(left: 10, right: 10),
+                  child: Container(
+                    width: w * 1,
+                    height: 45,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        String images = imageFileList!
+                            .map<String>((xfile) => xfile.name)
+                            .toList()
+                            .toString()
+                            .replaceAll("[", "")
+                            .replaceAll("]", "");
+                        print(images);
+                        if (text.text.isNotEmpty) {
+                          String value = '';
+                          if (images == "") {
+                            value = await add_Checkin(
+                                "add", id, widget.pid, text, '');
+                          } else {
+                            await add_Checkin(
+                                "add", id, widget.pid, text, images);
+                          }
+                          if (value != "FASLE") {
+                            if (imageFileList!.isNotEmpty) {
+                              uploadImage();
+                            }
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('เช็คอินสถานที่สำเร็จ')));
+                            print(value);
+                          } else {
+                            print("error");
+                          }
+
+                          Navigator.pop(context, "TRUE");
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('กรุณากรอกข้อมูล')));
+                        }
+                      },
+                      child: Text("เช็คอินสถานที่"),
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStatePropertyAll(
+                              Color.fromARGB(167, 81, 69, 250))),
+                    ),
+                  ),
+                )
+              ],
+            ),
+          )),
+    );
   }
 }
