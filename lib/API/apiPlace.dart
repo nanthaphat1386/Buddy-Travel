@@ -93,7 +93,7 @@ Future<String> addImageforPlace(String pid, String name) async {
   var response = await http.post(url, body: {
     'pid': pid,
     'image':
-        'https://bdtravel.comsciproject.net/buddy_travel/Upload/Picture/$name',
+        'https://bdtravel.comsciproject.net/buddy_travel/Upload/Picture/Place/$name',
   });
   // ignore: prefer_typing_uninitialized_variables
   var data;
@@ -284,7 +284,7 @@ UploadImagePlace(String fileImage, String imgName) async {
       {'file': await dio.MultipartFile.fromFile(fileImage, filename: imgName)});
   var response = await Dio()
       .post(
-          'https://bdtravel.comsciproject.net/buddy_travel/api/uploadImageProfile.php',
+          'https://bdtravel.comsciproject.net/buddy_travel/api/UploadImageToPlace.php',
           data: formData)
       .then((value) => print("Response ==> $value"));
 }

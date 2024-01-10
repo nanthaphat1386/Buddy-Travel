@@ -25,7 +25,7 @@ UploadImage(String fileImage, String imgName) async {
       {'file': await dio.MultipartFile.fromFile(fileImage, filename: imgName)});
   var response = await Dio()
       .post(
-          'https://bdtravel.comsciproject.net/buddy_travel/api/uploadImageProfile.php',
+          'https://bdtravel.comsciproject.net/buddy_travel/api/UploadImageToProfile.php',
           data: formData)
       .then((value) => print("Response ==> $value"));
 }
@@ -52,10 +52,14 @@ Future login(String email, String password) async {
 }
 
 Future getDetailMember(String id) async {
-  Uri url = Uri.parse(
-      'https://bdtravel.comsciproject.net/buddy_travel/api/getDetailMember.php');
-  var response = await http.post(url, body: {'id': id});
-  var data = jsonDecode(response.body);
+  var data;
+  try {
+    Uri url = Uri.parse(
+        'https://bdtravel.comsciproject.net/buddy_travel/api/getDetailMember.php');
+    var response = await http.post(url, body: {'id': id});
+    data = jsonDecode(response.body);
+  } catch (e) {}
+
   return data;
 }
 
