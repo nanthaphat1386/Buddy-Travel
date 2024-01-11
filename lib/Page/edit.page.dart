@@ -21,7 +21,7 @@ class _EditProfileState extends State<EditProfile> {
   TextEditingController dateinput = new TextEditingController();
 
   String image =
-      'https://bdtravel.comsciproject.net/buddy_travel/Upload/Picture/';
+      'https://bdtravel.comsciproject.net/buddy_travel/Upload/Picture/Profile/';
   String imgProfile = '';
   String id = '';
   String name = '';
