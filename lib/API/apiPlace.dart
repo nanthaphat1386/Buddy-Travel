@@ -5,10 +5,10 @@ import 'package:dio/dio.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:http/http.dart' as http;
 
-Future<List> getPlace() async {
+Future<List> getPlace(String lati, String long) async {
   Uri url = Uri.parse(
       'https://bdtravel.comsciproject.net/buddy_travel/api/place.php');
-  var response = await http.get(url);
+  var response = await http.post(url, body: {'lati': lati, 'long': long});
   // ignore: prefer_typing_uninitialized_variables
   var data;
   try {

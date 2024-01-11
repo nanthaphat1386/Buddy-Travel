@@ -100,7 +100,7 @@ Future<String> register(
       'password': password.text.toString(),
       'bdate': dateinput.text.toString(),
       'image':
-          'https://bdtravel.comsciproject.net/buddy_travel/Upload/Picture/$imageName'
+          'https://bdtravel.comsciproject.net/buddy_travel/Upload/Picture/Profile/$imageName'
     });
   }
   var data = jsonDecode(response.body);
