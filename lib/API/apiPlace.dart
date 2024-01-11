@@ -5,10 +5,10 @@ import 'package:dio/dio.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:http/http.dart' as http;
 
-Future<List> getPlace() async {
+Future<List> getPlace(String lati, String long) async {
   Uri url = Uri.parse(
       'https://bdtravel.comsciproject.net/buddy_travel/api/place.php');
-  var response = await http.get(url);
+  var response = await http.post(url, body: {'lati': lati, 'long': long});
   // ignore: prefer_typing_uninitialized_variables
   var data;
   try {
@@ -93,7 +93,7 @@ Future<String> addImageforPlace(String pid, String name) async {
   var response = await http.post(url, body: {
     'pid': pid,
     'image':
-        'https://bdtravel.comsciproject.net/buddy_travel/Upload/Picture/$name',
+        'https://bdtravel.comsciproject.net/buddy_travel/Upload/Picture/Place/$name',
   });
   // ignore: prefer_typing_uninitialized_variables
   var data;
@@ -284,7 +284,7 @@ UploadImagePlace(String fileImage, String imgName) async {
       {'file': await dio.MultipartFile.fromFile(fileImage, filename: imgName)});
   var response = await Dio()
       .post(
-          'https://bdtravel.comsciproject.net/buddy_travel/api/uploadImageProfile.php',
+          'https://bdtravel.comsciproject.net/buddy_travel/api/UploadImageToPlace.php',
           data: formData)
       .then((value) => print("Response ==> $value"));
 }

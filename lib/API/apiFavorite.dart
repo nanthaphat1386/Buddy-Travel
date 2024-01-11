@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:dio/dio.dart' as dio;
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 

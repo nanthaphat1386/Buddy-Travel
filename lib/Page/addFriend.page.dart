@@ -102,16 +102,15 @@ class _AddFriendState extends State<AddFriend> {
                           });
                         } else {
                           var data = await search_friend(mid, id_search);
-                          print(mid);
-                          print(id_search.text);
-                          if (data['id'] == mid) {
+                          print(data);
+                          if (data['id'] == mid && data['id'] != '') {
                             setState(() {
                               name = data['name'];
                               id = data['id'];
                               img = data['image'];
                               status = '3';
                             });
-                          } else if (data != "FALSE") {
+                          } else if (data['id'] != mid && data['id'] != '') {
                             setState(() {
                               name = data['name'];
                               id = data['id'];
