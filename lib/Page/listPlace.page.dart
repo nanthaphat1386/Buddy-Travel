@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:location/location.dart';
 import 'package:projectbdtravel/API/apiPlace.dart';
 import 'package:projectbdtravel/Page/addPlace.page.dart';
 import 'package:projectbdtravel/Page/detailPlace.page.dart';
@@ -14,6 +16,12 @@ class listPlace extends StatefulWidget {
 }
 
 class _listPlaceState extends State<listPlace> {
+  late bool _serviceEnabled;
+  late PermissionStatus _permissionGranted;
+  late LocationData _userLocation;
+  LatLng initialCameraPosition =
+      const LatLng(36.865421209974606, -124.99604970216751);
+
   List Place = [];
   int len_image = 0;
   List<Image> img = [];
@@ -25,12 +33,45 @@ class _listPlaceState extends State<listPlace> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    allPlace();
+    _getLocation();
   }
 
-  Future<List> allPlace() async {
+  Future<void> _getLocation() async {
+    Location location = Location();
+
+    // Check if location service is enable
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+
+    // Check if permission is granted
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+
+    _userLocation = await location.getLocation();
+    double? latitude = _userLocation.latitude;
+    double? longitude = _userLocation.longitude;
+
+    setState(() {
+      initialCameraPosition = LatLng(latitude!, longitude!);
+    });
     try {
-      Place = await getPlace();
+      allPlace(latitude!.toString(), longitude!.toString());
+    } catch (e) {}
+  }
+
+  Future<List> allPlace(String lati, String long) async {
+    try {
+      Place = await getPlace(lati, long);
       for (int i = 0; i < Place.length; i++) {
         split_address = Place[i]['P_Address'].toString().split(' ');
         address.add(split_address[split_address.length - 2]);
@@ -63,7 +104,8 @@ class _listPlaceState extends State<listPlace> {
                   String refresh = await Navigator.push(context,
                       MaterialPageRoute(builder: (context) => AddPlace()));
                   if (refresh == 'true') {
-                    allPlace();
+                    allPlace(initialCameraPosition.latitude.toString(),
+                        initialCameraPosition.longitude.toString());
                     setState(() {});
                   }
                 },
@@ -82,8 +124,10 @@ class _listPlaceState extends State<listPlace> {
             Padding(padding: EdgeInsets.all(5)),
             Expanded(
               child: FutureBuilder(
-                  future:
-                      allPlace(), // a previously-obtained Future<String> or null
+                  future: allPlace(
+                      initialCameraPosition.latitude.toString(),
+                      initialCameraPosition.longitude
+                          .toString()), // a previously-obtained Future<String> or null
                   builder:
                       (BuildContext context, AsyncSnapshot<List> snapshot) {
                     if (ConnectionState.active != null && !snapshot.hasData) {
@@ -129,14 +173,43 @@ class _listPlaceState extends State<listPlace> {
                                               MainAxisAlignment.spaceBetween,
                                           children: [
                                             Container(
-                                              child: Text(
-                                                Place[index]['P_Name'],
-                                                style: TextStyle(
-                                                    color: Colors.black,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 18),
-                                              ),
-                                            ),
+                                                child: Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                  child: Text(
+                                                    Place[index]['P_Name'],
+                                                    style: TextStyle(
+                                                        color: Colors.black,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 18),
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  width: w * 0.015,
+                                                ),
+                                                Container(
+                                                    decoration: BoxDecoration(
+                                                        border: Border.all(
+                                                            width: 1),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10)),
+                                                    //padding: EdgeInsets.all(2),
+                                                    child: Padding(
+                                                      padding:
+                                                          EdgeInsets.all(5.5),
+                                                      child: Text(
+                                                        '${Place[index]['distance']} Km.',
+                                                        style: TextStyle(
+                                                            color: Colors.black,
+                                                            fontSize: 10),
+                                                      ),
+                                                    )),
+                                              ],
+                                            )),
                                             Container(
                                               child: Row(
                                                 children: [
@@ -264,11 +337,23 @@ class _listPlaceState extends State<listPlace> {
                                                                       'P_ID'])));
                                                   if (ans == 'TRUE') {
                                                     setState(() {
-                                                      allPlace();
+                                                      allPlace(
+                                                          initialCameraPosition
+                                                              .latitude
+                                                              .toString(),
+                                                          initialCameraPosition
+                                                              .longitude
+                                                              .toString());
                                                     });
                                                   } else {
                                                     setState(() {
-                                                      allPlace();
+                                                      allPlace(
+                                                          initialCameraPosition
+                                                              .latitude
+                                                              .toString(),
+                                                          initialCameraPosition
+                                                              .longitude
+                                                              .toString());
                                                     });
                                                   }
                                                 },

@@ -491,7 +491,7 @@ class _ProfileState extends State<Profile> {
                                                   return Container(
                                                       child: Image.network(
                                                     data[index]['C_Image'][i],
-                                                    fit: BoxFit.fill,
+                                                    fit: BoxFit.fitHeight,
                                                   ));
                                                 }),
                                           )),

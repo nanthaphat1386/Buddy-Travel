@@ -368,7 +368,7 @@ class _timelineState extends State<timeline> {
                                                                 Image.network(
                                                             checkin[index]
                                                                 ['image'][i],
-                                                            fit: BoxFit.fill,
+                                                            fit: BoxFit.fitHeight,
                                                           ))
                                                         : Container();
                                                   }),
