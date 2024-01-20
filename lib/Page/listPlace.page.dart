@@ -250,8 +250,8 @@ class _listPlaceState extends State<listPlace> {
                                                       Container(
                                                         child: Text(
                                                           Place[index]
-                                                              ['P_Name'].toString().length >= 25 ?   Place[index]
-                                                              ['P_Name'].toString().substring(0,22) + "..." :Place[index]
+                                                              ['P_Name'].toString().length >= 24 ?   Place[index]
+                                                              ['P_Name'].toString().substring(0,20) + "..." :Place[index]
                                                               ['P_Name'],
                                                           style: TextStyle(
                                                               color:
