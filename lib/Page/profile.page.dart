@@ -9,7 +9,7 @@ import 'package:projectbdtravel/Tools/responsive.tools.dart';
 import 'package:projectbdtravel/Tools/style.tools.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum SampleItem { itemOne, itemTwo }
+enum SampleItem { itemOne, itemTwo, itemThree }
 
 class Profile extends StatefulWidget {
   final String id;
@@ -231,6 +231,8 @@ class _ProfileState extends State<Profile> {
               Container(
                 width: w,
                 height: 0.25 * h,
+                margin: EdgeInsets.only(left: 10, right: 10),
+                decoration: BoxDecoration(color: Colors.white38),
                 // decoration: BoxDecoration(color: Colors.white),
                 child: Padding(
                   padding: EdgeInsets.only(left: 10, right: 10),
@@ -238,8 +240,8 @@ class _ProfileState extends State<Profile> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       Container(
-                        width: w * 0.35,
-                        height: h * 0.2,
+                        width: w * 0.325,
+                        height: h * 0.185,
                         alignment: Alignment.centerLeft,
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(100),
@@ -335,9 +337,12 @@ class _ProfileState extends State<Profile> {
                                                     Container(
                                                       width: w * 0.6,
                                                       child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .start,
                                                         crossAxisAlignment:
                                                             CrossAxisAlignment
-                                                                .center,
+                                                                .end,
                                                         children: [
                                                           Text(
                                                             data[index]['Profile_Name']
@@ -433,6 +438,8 @@ class _ProfileState extends State<Profile> {
                                                                       getProfile();
                                                                     });
                                                                   }
+                                                                }else if(selectedMenu == SampleItem.itemThree){
+
                                                                 }
                                                               },
                                                               itemBuilder: (BuildContext
@@ -455,6 +462,14 @@ class _ProfileState extends State<Profile> {
                                                                     'ลบ',
                                                                   ),
                                                                 ),
+                                                                const PopupMenuItem<
+                                                                    SampleItem>(
+                                                                  value: SampleItem
+                                                                      .itemThree,
+                                                                  child: Text(
+                                                                    'แชร์ Facebook',
+                                                                  ),
+                                                                ),
                                                               ],
                                                             ),
                                                           )
@@ -463,6 +478,8 @@ class _ProfileState extends State<Profile> {
                                                 ),
                                                 Container(
                                                     width: w * 0.6,
+                                                    alignment:
+                                                        Alignment.topLeft,
                                                     child: Expanded(
                                                         child: Text(
                                                       '${data[index]['C_Text']}',
@@ -506,28 +523,7 @@ class _ProfileState extends State<Profile> {
                                               TextStyle(color: Colors.black54),
                                         ),
                                       ),
-                                      Padding(
-                                        padding: EdgeInsets.all(5),
-                                        child: Container(
-                                          alignment: Alignment.center,
-                                          width: w * 0.8,
-                                          height: h * 0.06,
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Icon(
-                                                Icons.favorite_outline,
-                                                color: HexColor('#615EFF'),
-                                              ),
-                                              Icon(
-                                                Icons.share,
-                                                color: HexColor('#615EFF'),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
+                                      SizedBox(height: 10,)
                                     ],
                                   ),
                                 ),

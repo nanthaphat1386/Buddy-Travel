@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:projectbdtravel/API/apiFriend.dart';
-import 'package:projectbdtravel/API/apiUser.dart';
 import 'package:projectbdtravel/Page/profile.page.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
 import 'package:shared_preferences/shared_preferences.dart';

@@ -184,7 +184,9 @@ class _AddPlaceState extends State<AddPlace> {
       try {
         final List<XFile>? selectedImages = await imagePicker.pickMultiImage();
         if (selectedImages!.isNotEmpty) {
-          imageFileList!.addAll(selectedImages);
+          for (int i = 0; i < selectedImages.length; i++) {
+            imageFileList!.add(selectedImages[i]);
+          }
         }
         setState(() {});
       } catch (e) {}
@@ -645,6 +647,7 @@ class _AddPlaceState extends State<AddPlace> {
                         child: const Icon(
                           Icons.close,
                           color: Colors.redAccent,
+                          size: 12,
                         ),
                       ))
                 ],
@@ -1220,5 +1223,139 @@ class _MapMarkerPlaceState extends State<MapMarkerPlace> {
       ),
     );
     setState(() {});
+  }
+}
+
+class AddImagePage extends StatefulWidget {
+  final String pid;
+  const AddImagePage({Key? key, required this.pid}) : super(key: key);
+
+  @override
+  State<AddImagePage> createState() => _AddImagePageState();
+}
+
+class _AddImagePageState extends State<AddImagePage> {
+  List<XFile>? imageFileList = [];
+  final ImagePicker imagePicker = ImagePicker();
+
+  void selectImages() async {
+    try {
+      final List<XFile>? selectedImages = await imagePicker.pickMultiImage();
+      if (selectedImages!.isNotEmpty) {
+        imageFileList!.addAll(selectedImages);
+      }
+      setState(() {});
+    } catch (e) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    double w = displayWidth(context);
+    double h = displayHeight(context) -
+        MediaQuery.of(context).padding.top -
+        kToolbarHeight;
+
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color.fromARGB(122, 116, 63, 238),
+        title: Text('เพิ่มรูปสถานที่ท่องเที่ยว'),
+        leading: IconButton(
+            onPressed: () {
+              Navigator.pop(context, "FALSE");
+            },
+            icon: Icon(Icons.arrow_back)),
+      ),
+      body: Container(
+        margin: EdgeInsets.all(10),
+        width: w * 1,
+        height: h * 1,
+        child: Column(children: [
+          ElevatedButton(
+            onPressed: () {
+              selectImages();
+            },
+            child: Text("เพิ่มรูปภาพ"),
+            style: ButtonStyle(
+                backgroundColor: MaterialStatePropertyAll(
+                    Color.fromARGB(122, 116, 63, 238))),
+          ),
+          Container(
+              margin: EdgeInsets.only(top: 10),
+              padding: EdgeInsets.all(10),
+              width: w * 1,
+              height: h * 0.35,
+              decoration: BoxDecoration(
+                  border: Border.all(width: 1, color: Colors.black12)),
+              child: Scrollbar(
+                child: GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 3,
+                    crossAxisCount: 3,
+                  ),
+                  itemCount: imageFileList!.length,
+                  itemBuilder: (context, index) {
+                    return InkWell(
+                        splashColor: Colors.white10, // Splash color over image
+                        child: Stack(
+                          children: [
+                            Image(
+                              fit: BoxFit.cover, // Fixes border issues
+                              width: 110,
+                              height: 110,
+                              image:
+                                  FileImage(File(imageFileList![index].path)),
+                            ),
+                            Align(
+                              alignment: Alignment.bottomRight,
+                              child: InkWell(
+                                onTap: () {
+                                  imageFileList!.removeAt(index);
+                                  setState(() {});
+                                },
+                                child: Icon(
+                                  Icons.close,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ));
+                  },
+                ),
+              )),
+          Container(
+              margin: EdgeInsets.only(top: 30),
+              width: w * 1,
+              child: ElevatedButton(
+                onPressed: () async {
+                  String images = imageFileList!
+                      .map<String>((xfile) => xfile.name)
+                      .toList()
+                      .toString()
+                      .replaceAll("[", "")
+                      .replaceAll("]", "");
+                  String value = await addImageforPlace(widget.pid, images);
+                  if (value == "TRUE") {
+                    for (int i = 0; i < imageFileList!.length; i++) {
+                      UploadImagePlace(
+                          imageFileList![i].path, imageFileList![i].name);
+                    }
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('เพิ่มรูปภาพสำเร็จ')));
+                    Navigator.pop(context, "TRUE");
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('เพิ่มรูปภาพไม่สำเร็จ')));
+                  }
+                },
+                child: Text("ยืนยันการเพิ่มรูปภาพ"),
+                style: ButtonStyle(
+                    backgroundColor: MaterialStatePropertyAll(
+                        Color.fromARGB(122, 116, 63, 238))),
+              ))
+        ]),
+      ),
+    );
   }
 }

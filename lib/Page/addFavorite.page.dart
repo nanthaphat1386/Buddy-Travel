@@ -44,7 +44,7 @@ class _AddFavoriteState extends State<AddFavorite> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('เพิ่มรายการส้ำเร็จ'),
+                Text('เพิ่มรายการโปรดสำเร็จ'),
               ],
             ),
           ),
