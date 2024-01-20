@@ -1,11 +1,7 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
-import 'dart:convert';
-import 'package:hexcolor/hexcolor.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:http/http.dart' as http;
+import 'package:location/location.dart';
 import 'package:projectbdtravel/API/apiUser.dart';
 import 'package:projectbdtravel/Component/tapBar.dart';
 import 'package:projectbdtravel/Page/register.page.dart';
@@ -131,7 +127,7 @@ class _LoginState extends State<Login> {
               ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('อีเมลหรือรหัสผ่านไม่ถูกต้อง')));
             } else if (result.toString().contains("FALSE")) {
-             ScaffoldMessenger.of(context).showSnackBar(
+              ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('กรุณากรอกอีเมล')));
             } else {
               ScaffoldMessenger.of(context).showSnackBar(

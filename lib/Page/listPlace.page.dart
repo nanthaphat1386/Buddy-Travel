@@ -7,6 +7,7 @@ import 'package:projectbdtravel/Page/addPlace.page.dart';
 import 'package:projectbdtravel/Page/detailPlace.page.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:projectbdtravel/Tools/style.tools.dart';
 
 class listPlace extends StatefulWidget {
   const listPlace({super.key});
@@ -21,13 +22,10 @@ class _listPlaceState extends State<listPlace> {
   late LocationData _userLocation;
   LatLng initialCameraPosition =
       const LatLng(36.865421209974606, -124.99604970216751);
+  bool isChecked = false;
+  TextEditingController place_search = new TextEditingController();
 
   List Place = [];
-  int len_image = 0;
-  List<Image> img = [];
-  List<String> split_address = [];
-  List address = [];
-  Map<int, List<Image>> len_img = {};
 
   @override
   void initState() {
@@ -61,27 +59,36 @@ class _listPlaceState extends State<listPlace> {
     double? latitude = _userLocation.latitude;
     double? longitude = _userLocation.longitude;
 
-    setState(() {
-      initialCameraPosition = LatLng(latitude!, longitude!);
-    });
     try {
+      setState(() {
+        initialCameraPosition = LatLng(latitude!, longitude!);
+      });
       allPlace(latitude!.toString(), longitude!.toString());
+      allPlace10km(latitude.toString(), longitude.toString());
     } catch (e) {}
   }
 
   Future<List> allPlace(String lati, String long) async {
     try {
       Place = await getPlace(lati, long);
-      for (int i = 0; i < Place.length; i++) {
-        split_address = Place[i]['P_Address'].toString().split(' ');
-        address.add(split_address[split_address.length - 2]);
-        len_image = Place[i]['P_Image'].length;
-        for (int m = 0; m < len_image; m++) {
-          img.add(Image.network(Place[i]['P_Image'][m].toString()));
-          len_img[i] = img;
-        }
-        img = [];
-      }
+    } catch (e) {
+      print(e);
+    }
+    return Place;
+  }
+
+  Future<List> allPlace10km(String lati, String long) async {
+    try {
+      Place = await getPlace10Km(lati, long, "send");
+    } catch (e) {
+      print(e);
+    }
+    return Place;
+  }
+
+  Future<List> allPlaceByName(String lati, String long, String name) async {
+    try {
+      Place = await getPlaceByName(lati, long, name);
     } catch (e) {
       print(e);
     }
@@ -104,30 +111,90 @@ class _listPlaceState extends State<listPlace> {
                   String refresh = await Navigator.push(context,
                       MaterialPageRoute(builder: (context) => AddPlace()));
                   if (refresh == 'true') {
-                    allPlace(initialCameraPosition.latitude.toString(),
-                        initialCameraPosition.longitude.toString());
-                    setState(() {});
+                    if (isChecked == true) {
+                      setState(() {
+                        allPlace(initialCameraPosition.latitude.toString(),
+                            initialCameraPosition.longitude.toString());
+                      });
+                    } else {
+                      setState(() {
+                        allPlace10km(initialCameraPosition.latitude.toString(),
+                            initialCameraPosition.longitude.toString());
+                      });
+                    }
                   }
                 },
                 icon: Icon(Icons.add_home_work_sharp))
           ],
         ),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: HexColor('#859C9AFC'),
-          onPressed: () {},
-          shape: CircleBorder(),
-          child: const Icon(Icons.search),
-        ),
         backgroundColor: Colors.grey.shade300,
         body: Column(
           children: [
-            Padding(padding: EdgeInsets.all(5)),
+            Padding(
+              padding: EdgeInsets.all(10),
+              child: Row(
+                children: [
+                  Container(
+                    width: w * 0.7,
+                    height: h * 0.2,
+                    alignment: Alignment.centerLeft,
+                    child: TextField(
+                      controller: place_search,
+                      maxLines: 1,
+                      textAlign: TextAlign.left,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        suffixIcon: InkWell(
+                          onTap: () {
+                            setState(() {
+                              allPlaceByName(
+                                  initialCameraPosition.latitude.toString(),
+                                  initialCameraPosition.longitude.toString(),
+                                  place_search.text);
+                            });
+                          },
+                          child: Icon(Icons.search, color: HexColor('#9C9AFC')),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                            borderSide: BorderSide(
+                                width: 1, color: HexColor('#9C9AFC'))),
+                        focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                            borderSide: BorderSide(
+                                width: 1, color: HexColor('#9C9AFC'))),
+                        hintText: 'ชื่อ ประเภท เทศกาล',
+                      ),
+                    ),
+                  ),
+                  Checkbox(
+                    checkColor: Colors.black,
+                    fillColor: MaterialStateProperty.all(Colors.white),
+                    value: isChecked,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        isChecked = value!;
+                      });
+                    },
+                  ),
+                  Text("ทั้งหมด")
+                ],
+              ),
+            ),
             Expanded(
               child: FutureBuilder(
-                  future: allPlace(
-                      initialCameraPosition.latitude.toString(),
-                      initialCameraPosition.longitude
-                          .toString()), // a previously-obtained Future<String> or null
+                  future: isChecked == false && place_search.text.isEmpty
+                      ? allPlace10km(initialCameraPosition.latitude.toString(),
+                          initialCameraPosition.longitude.toString())
+                      : isChecked == true && place_search.text.isEmpty
+                          ? allPlace(initialCameraPosition.latitude.toString(),
+                              initialCameraPosition.longitude.toString())
+                          : allPlaceByName(
+                              initialCameraPosition.latitude.toString(),
+                              initialCameraPosition.longitude.toString(),
+                              place_search
+                                  .text), // a previously-obtained Future<String> or null // a previously-obtained Future<String> or null
                   builder:
                       (BuildContext context, AsyncSnapshot<List> snapshot) {
                     if (ConnectionState.active != null && !snapshot.hasData) {
@@ -138,247 +205,279 @@ class _listPlaceState extends State<listPlace> {
                             itemCount: Place.length,
                             itemBuilder:
                                 (BuildContext buildContext, int index) {
-                              return Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 5, right: 5, top: 3),
-                                child: Card(
-                                  clipBehavior: Clip.antiAlias,
-                                  child: Column(
-                                    children: [
-                                      Container(
-                                        height: h * 0.75,
-                                        width: w,
-                                        child: CarouselSlider(
-                                            items: len_img[index],
-                                            options: CarouselOptions(
-                                              height: h * 1.25,
-                                              aspectRatio: 16 / 9,
-                                              viewportFraction: 0.8,
-                                              initialPage: 0,
-                                              enableInfiniteScroll: true,
-                                              reverse: false,
-                                              autoPlay: false,
-                                              //autoPlayInterval: Duration(seconds: 3),
-                                              //autoPlayAnimationDuration: Duration(milliseconds: 800),
-                                              autoPlayCurve:
-                                                  Curves.fastOutSlowIn,
-                                              enlargeCenterPage: true,
-                                              scrollDirection: Axis.horizontal,
-                                            )),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.all(10),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
+                              return Place[0]['P_ID'] != ""
+                                  ? Padding(
+                                      padding: const EdgeInsets.only(
+                                          left: 5, right: 5),
+                                      child: Card(
+                                        clipBehavior: Clip.antiAlias,
+                                        child: Column(
                                           children: [
                                             Container(
-                                                child: Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Container(
-                                                  child: Text(
-                                                    Place[index]['P_Name'],
-                                                    style: TextStyle(
-                                                        color: Colors.black,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 18),
-                                                  ),
-                                                ),
-                                                SizedBox(
-                                                  width: w * 0.015,
-                                                ),
-                                                Container(
-                                                    decoration: BoxDecoration(
-                                                        border: Border.all(
-                                                            width: 1),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10)),
-                                                    //padding: EdgeInsets.all(2),
-                                                    child: Padding(
-                                                      padding:
-                                                          EdgeInsets.all(5.5),
-                                                      child: Text(
-                                                        '${Place[index]['distance']} Km.',
-                                                        style: TextStyle(
-                                                            color: Colors.black,
-                                                            fontSize: 10),
-                                                      ),
-                                                    )),
-                                              ],
-                                            )),
-                                            Container(
+                                              height: h * 0.75,
+                                              width: w,
+                                              child: Scrollbar(
+                                                child: PageView.builder(
+                                                    itemCount: Place[index]
+                                                            ['P_Image']
+                                                        .length,
+                                                    pageSnapping: true,
+                                                    padEnds: false,
+                                                    itemBuilder: (context,
+                                                        pagePosition) {
+                                                      return Container(
+                                                          child: Image.network(
+                                                        Place[index]['P_Image']
+                                                            [pagePosition],
+                                                        fit: BoxFit.fitHeight,
+                                                      ));
+                                                    }),
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding: EdgeInsets.all(10),
                                               child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
                                                 children: [
-                                                  Text(Place[index]
-                                                          ['P_CountReview'] +
-                                                      ' '),
-                                                  Icon(
-                                                    Icons.reviews,
-                                                    color: HexColor('#9C9AFC'),
+                                                  Container(
+                                                      child: Row(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Container(
+                                                        child: Text(
+                                                          Place[index]
+                                                              ['P_Name'].toString().length >= 25 ?   Place[index]
+                                                              ['P_Name'].toString().substring(0,22) + "..." :Place[index]
+                                                              ['P_Name'],
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.black,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 18),
+                                                        ),
+                                                      ),
+                                                      SizedBox(
+                                                        width: w * 0.015,
+                                                      ),
+                                                      Container(
+                                                          decoration: BoxDecoration(
+                                                              border:
+                                                                  Border.all(
+                                                                      width: 1),
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          10)),
+                                                          //padding: EdgeInsets.all(2),
+                                                          child: Padding(
+                                                            padding:
+                                                                EdgeInsets.all(
+                                                                    5.5),
+                                                            child: Text(
+                                                              '${Place[index]['Distance']} Km.',
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .black,
+                                                                  fontSize: 10),
+                                                            ),
+                                                          )),
+                                                    ],
+                                                  )),
+                                                  Container(
+                                                    child: Row(
+                                                      children: [
+                                                        Text(Place[index][
+                                                                'P_CountReview'] +
+                                                            ' '),
+                                                        Icon(
+                                                          Icons.reviews,
+                                                          color: HexColor(
+                                                              '#9C9AFC'),
+                                                        ),
+                                                      ],
+                                                    ),
                                                   ),
                                                 ],
                                               ),
                                             ),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      10, 2, 10, 2),
+                                              child: Container(
+                                                child: Row(
+                                                  children: [
+                                                    Text(
+                                                      'ประเภท ',
+                                                      style: TextStyle(
+                                                          fontSize: 15,
+                                                          color: Colors.black),
+                                                    ),
+                                                    for (int i = 0;
+                                                        i <
+                                                            Place[index]
+                                                                    ['P_Type']
+                                                                .length;
+                                                        i++)
+                                                      Wrap(
+                                                        children: [
+                                                          Padding(
+                                                            padding:
+                                                                EdgeInsets.only(
+                                                                    right: 5),
+                                                            child: box(Place[
+                                                                    index]
+                                                                ['P_Type'][i]),
+                                                          )
+                                                        ],
+                                                      ),
+                                                    //
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      10, 2, 10, 2),
+                                              child: Container(
+                                                child: Row(
+                                                  children: [
+                                                    Text(
+                                                      'เทศกาล ',
+                                                      style: TextStyle(
+                                                          fontSize: 15,
+                                                          color: Colors.black),
+                                                    ),
+                                                    for (int i = 0;
+                                                        i <
+                                                            Place[index][
+                                                                    'P_Festival']
+                                                                .length;
+                                                        i++)
+                                                      Wrap(
+                                                        children: [
+                                                          Padding(
+                                                            padding:
+                                                                EdgeInsets.only(
+                                                                    right: 5),
+                                                            child: box(Place[
+                                                                        index][
+                                                                    'P_Festival']
+                                                                [i]),
+                                                          ),
+                                                        ],
+                                                      )
+                                                    //
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                    child: Row(
+                                                  children: [
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              left: 5),
+                                                      child: Icon(
+                                                        Icons
+                                                            .location_on_outlined,
+                                                        size: 20,
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      padding: EdgeInsets.only(
+                                                          left: 2),
+                                                      alignment:
+                                                          Alignment.topLeft,
+                                                      child: Text(
+                                                        Place[index]
+                                                            ["P_Address"],
+                                                        textAlign:
+                                                            TextAlign.left,
+                                                        style: TextStyle(
+                                                            color: Colors.black
+                                                                .withOpacity(
+                                                                    0.6),
+                                                            fontSize: 15),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                )),
+                                                Container(
+                                                  padding: EdgeInsets.all(5),
+                                                  alignment: Alignment(1, -1),
+                                                  child: ButtonTheme(
+                                                    minWidth: 0.35 * w,
+                                                    height: 0.075 * h,
+                                                    child: ElevatedButton(
+                                                      onPressed: () async {
+                                                        String ans = await Navigator.push(
+                                                            context,
+                                                            MaterialPageRoute(
+                                                                builder: (context) =>
+                                                                    DetailPlace(
+                                                                        id: Place[index]
+                                                                            [
+                                                                            'P_ID'])));
+                                                        if (ans == 'TRUE') {
+                                                          setState(() {
+                                                            allPlace(
+                                                                initialCameraPosition
+                                                                    .latitude
+                                                                    .toString(),
+                                                                initialCameraPosition
+                                                                    .longitude
+                                                                    .toString());
+                                                          });
+                                                        } else {
+                                                          setState(() {
+                                                            allPlace(
+                                                                initialCameraPosition
+                                                                    .latitude
+                                                                    .toString(),
+                                                                initialCameraPosition
+                                                                    .longitude
+                                                                    .toString());
+                                                          });
+                                                        }
+                                                      },
+                                                      child: const Text(
+                                                        'เยี่ยมชม',
+                                                      ),
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                              primary: HexColor(
+                                                                  '#9C9AFC'),
+                                                              padding: EdgeInsets
+                                                                  .symmetric(
+                                                                      horizontal:
+                                                                          30,
+                                                                      vertical:
+                                                                          10),
+                                                              textStyle:
+                                                                  TextStyle(
+                                                                fontSize: 15,
+                                                              )),
+                                                    ),
+                                                  ),
+                                                )
+                                              ],
+                                            ),
                                           ],
                                         ),
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                            10, 2, 10, 2),
-                                        child: Container(
-                                          child: Row(
-                                            children: [
-                                              Text(
-                                                'ประเภท ',
-                                                style: TextStyle(
-                                                    fontSize: 15,
-                                                    color: Colors.black),
-                                              ),
-                                              for (int i = 0;
-                                                  i <
-                                                      Place[index]['P_Type']
-                                                          .length;
-                                                  i++)
-                                                Wrap(
-                                                  children: [
-                                                    Padding(
-                                                      padding: EdgeInsets.only(
-                                                          right: 5),
-                                                      child: box(Place[index]
-                                                          ['P_Type'][i]),
-                                                    )
-                                                  ],
-                                                ),
-                                              //
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                            10, 2, 10, 2),
-                                        child: Container(
-                                          child: Row(
-                                            children: [
-                                              Text(
-                                                'เทศกาล ',
-                                                style: TextStyle(
-                                                    fontSize: 15,
-                                                    color: Colors.black),
-                                              ),
-                                              for (int i = 0;
-                                                  i <
-                                                      Place[index]['P_Festival']
-                                                          .length;
-                                                  i++)
-                                                Wrap(
-                                                  children: [
-                                                    Padding(
-                                                      padding: EdgeInsets.only(
-                                                          right: 5),
-                                                      child: box(Place[index]
-                                                          ['P_Festival'][i]),
-                                                    ),
-                                                  ],
-                                                )
-                                              //
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                              child: Row(
-                                            children: [
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 5),
-                                                child: Icon(
-                                                  Icons.location_on_outlined,
-                                                  size: 20,
-                                                ),
-                                              ),
-                                              Container(
-                                                padding:
-                                                    EdgeInsets.only(left: 2),
-                                                alignment: Alignment.topLeft,
-                                                child: Text(
-                                                  address[index],
-                                                  textAlign: TextAlign.left,
-                                                  style: TextStyle(
-                                                      color: Colors.black
-                                                          .withOpacity(0.6),
-                                                      fontSize: 15),
-                                                ),
-                                              ),
-                                            ],
-                                          )),
-                                          Container(
-                                            padding: EdgeInsets.all(5),
-                                            alignment: Alignment(1, -1),
-                                            child: ButtonTheme(
-                                              minWidth: 0.35 * w,
-                                              height: 0.075 * h,
-                                              child: ElevatedButton(
-                                                onPressed: () async {
-                                                  String ans = await Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              DetailPlace(
-                                                                  id: Place[
-                                                                          index]
-                                                                      [
-                                                                      'P_ID'])));
-                                                  if (ans == 'TRUE') {
-                                                    setState(() {
-                                                      allPlace(
-                                                          initialCameraPosition
-                                                              .latitude
-                                                              .toString(),
-                                                          initialCameraPosition
-                                                              .longitude
-                                                              .toString());
-                                                    });
-                                                  } else {
-                                                    setState(() {
-                                                      allPlace(
-                                                          initialCameraPosition
-                                                              .latitude
-                                                              .toString(),
-                                                          initialCameraPosition
-                                                              .longitude
-                                                              .toString());
-                                                    });
-                                                  }
-                                                },
-                                                child: const Text(
-                                                  'เยี่ยมชม',
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                    primary:
-                                                        HexColor('#9C9AFC'),
-                                                    padding:
-                                                        EdgeInsets.symmetric(
-                                                            horizontal: 30,
-                                                            vertical: 10),
-                                                    textStyle: TextStyle(
-                                                      fontSize: 15,
-                                                    )),
-                                              ),
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
+                                    )
+                                  : Container();
                             }));
                   }),
             )

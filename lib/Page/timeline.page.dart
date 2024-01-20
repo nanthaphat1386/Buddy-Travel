@@ -6,10 +6,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:projectbdtravel/API/apiPost.dart';
 import 'package:projectbdtravel/Page/detailPlace.page.dart';
 import 'package:projectbdtravel/Page/listFavorite.page.dart';
+import 'package:projectbdtravel/Page/profile.page.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum SampleItem { itemOne, itemTwo }
+enum SampleItem { itemOne, itemTwo, itemThree }
 
 class timeline extends StatefulWidget {
   const timeline({super.key});
@@ -175,14 +176,32 @@ class _timelineState extends State<timeline> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Padding(
-                                                padding: EdgeInsets.all(10),
-                                                child: CircleAvatar(
-                                                  radius: 30,
-                                                  backgroundImage: NetworkImage(
-                                                      checkin[index]['P_image'],
-                                                      scale: 1.0),
-                                                ),
-                                              ),
+                                                  padding: EdgeInsets.all(10),
+                                                  child: InkWell(
+                                                    onTap: () {
+                                                      Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                              builder: ((context) => Profile(
+                                                                  id: checkin[
+                                                                          index]
+                                                                      ["M_ID"],
+                                                                  info: ID ==
+                                                                          checkin[index]
+                                                                              [
+                                                                              "M_ID"]
+                                                                      ? "me"
+                                                                      : "friend"))));
+                                                    },
+                                                    child: CircleAvatar(
+                                                      radius: 30,
+                                                      backgroundImage:
+                                                          NetworkImage(
+                                                              checkin[index]
+                                                                  ['P_image'],
+                                                              scale: 1.0),
+                                                    ),
+                                                  )),
                                               Wrap(
                                                 direction: Axis.vertical,
                                                 spacing: 2,
@@ -199,27 +218,38 @@ class _timelineState extends State<timeline> {
                                                         child: Row(
                                                           crossAxisAlignment:
                                                               CrossAxisAlignment
-                                                                  .center,
+                                                                  .end,
                                                           children: [
-                                                            Text(
-                                                              checkin[index]['name']
-                                                                          .toString()
-                                                                          .length >
-                                                                      14
-                                                                  ? checkin[index]
-                                                                              [
-                                                                              'name']
-                                                                          .substring(
-                                                                              0,
-                                                                              10) +
-                                                                      '...'
-                                                                  : checkin[
-                                                                          index]
-                                                                      ['name'],
-                                                              style: TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold),
+                                                            InkWell(
+                                                              onTap: () {
+                                                                Navigator.push(
+                                                                    context,
+                                                                    MaterialPageRoute(
+                                                                        builder: ((context) => Profile(
+                                                                            id: checkin[index][
+                                                                                "M_ID"],
+                                                                            info: ID == checkin[index]["M_ID"]
+                                                                                ? "me"
+                                                                                : "friend"))));
+                                                              },
+                                                              child: Text(
+                                                                checkin[index]['name']
+                                                                            .toString()
+                                                                            .length >
+                                                                        14
+                                                                    ? checkin[index]['name'].substring(
+                                                                            0,
+                                                                            10) +
+                                                                        '...'
+                                                                    : checkin[
+                                                                            index]
+                                                                        [
+                                                                        'name'],
+                                                                style: TextStyle(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold),
+                                                              ),
                                                             ),
                                                             Icon(
                                                               Icons.location_on,
@@ -301,7 +331,9 @@ class _timelineState extends State<timeline> {
                                                                               ID);
                                                                         });
                                                                       }
-                                                                    }
+                                                                    } else if (selectedMenu ==
+                                                                        SampleItem
+                                                                            .itemThree) {}
                                                                   },
                                                                   itemBuilder: (BuildContext
                                                                           context) =>
@@ -323,6 +355,15 @@ class _timelineState extends State<timeline> {
                                                                       child:
                                                                           Text(
                                                                         'ลบ',
+                                                                      ),
+                                                                    ),
+                                                                    const PopupMenuItem<
+                                                                        SampleItem>(
+                                                                      value: SampleItem
+                                                                          .itemThree,
+                                                                      child:
+                                                                          Text(
+                                                                        'แชร์ลง Facebook',
                                                                       ),
                                                                     ),
                                                                   ],
@@ -368,7 +409,8 @@ class _timelineState extends State<timeline> {
                                                                 Image.network(
                                                             checkin[index]
                                                                 ['image'][i],
-                                                            fit: BoxFit.fitHeight,
+                                                            fit: BoxFit
+                                                                .fitHeight,
                                                           ))
                                                         : Container();
                                                   }),
@@ -385,29 +427,9 @@ class _timelineState extends State<timeline> {
                                                 color: Colors.black54),
                                           ),
                                         ),
-                                        Padding(
-                                          padding: EdgeInsets.all(5),
-                                          child: Container(
-                                            alignment: Alignment.center,
-                                            width: w * 0.8,
-                                            height: h * 0.06,
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Icon(
-                                                  Icons.favorite_outline,
-                                                  color: HexColor('#615EFF'),
-                                                ),
-                                                Icon(
-                                                  Icons.share,
-                                                  color: HexColor('#615EFF'),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
+                                        SizedBox(
+                                          height: 10,
+                                        )
                                       ],
                                     ),
                                   ),
@@ -460,13 +482,15 @@ class _EditCheckinState extends State<EditCheckin> {
   }
 
   void selectImages() async {
-    if (imageFileList.length + imageFileListAdd!.length >= 5) {
+    if (imageFileList!.length == 5) {
       _dialogBuilderFullImage(context);
     } else {
       try {
         final List<XFile>? selectedImages = await imagePicker.pickMultiImage();
         if (selectedImages!.isNotEmpty) {
-          imageFileListAdd!.addAll(selectedImages);
+          for (int i = 0; i < selectedImages.length; i++) {
+            imageFileList!.add(selectedImages[i]);
+          }
         }
         setState(() {});
       } catch (e) {}
@@ -551,14 +575,6 @@ class _EditCheckinState extends State<EditCheckin> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        // ElevatedButton(
-                        //     onPressed: () {
-                        //       //selectImages();
-                        //     },
-                        //     child: Text('เพิ่มรูปภาพ'),
-                        //     style: ButtonStyle(
-                        //         backgroundColor: MaterialStatePropertyAll(
-                        //             Color.fromARGB(167, 81, 69, 250)))),
                         Container(
                           width: w * 0.945,
                           height: h * 0.13,
@@ -710,13 +726,11 @@ class _EditCheckinState extends State<EditCheckin> {
                                 imageFileListAdd![i].name);
                           }
                           ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('แก้ไขสำเร็จ')));
+                              const SnackBar(content: Text('แก้ไขสำเร็จ')));
                           Navigator.pop(context, "TRUE");
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('แก้ไขไม่สำเร็จ')));
+                              const SnackBar(content: Text('แก้ไขไม่สำเร็จ')));
                         }
                       },
                       child: Text("แก้ไขเช็คอินสถานที่"),

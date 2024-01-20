@@ -7,7 +7,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:projectbdtravel/API/apiFavorite.dart';
 import 'package:projectbdtravel/API/apiPlace.dart';
 import 'package:projectbdtravel/API/apiPost.dart';
+import 'package:projectbdtravel/API/apiReview.dart';
+import 'package:projectbdtravel/Page/addPlace.page.dart';
 import 'package:projectbdtravel/Page/profile.page.dart';
+import 'package:projectbdtravel/Page/review.page.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -21,26 +24,13 @@ class DetailPlace extends StatefulWidget {
   State<DetailPlace> createState() => _DetailPlaceState();
 }
 
-class _DetailPlaceState extends State<DetailPlace> {
+class _DetailPlaceState extends State<DetailPlace>
+    with AutomaticKeepAliveClientMixin<DetailPlace> {
   var detail;
-  String name = '';
-  String description = '';
-  String address = '';
-  int len_image = 0;
-  int len_type = 0;
-  int len_festival = 0;
-  int len_review = 0;
-  int a = 0;
-  double point = 0;
-  List img = [];
-  List type = [];
-  List festival = [];
+  List? reviews = [];
   SampleItem? selectedMenu;
-
   String closeplace = '';
-
   String id_me = '';
-
   List<XFile>? imageFileList = [];
   final ImagePicker imagePicker = ImagePicker();
 
@@ -50,8 +40,6 @@ class _DetailPlaceState extends State<DetailPlace> {
   String select_id = '';
 
   late GoogleMapController _controller;
-  late Marker marker;
-  List<Marker> markers = <Marker>[];
   LatLng initialCameraPosition = LatLng(16.2250267, 103.2298629);
 
   @override
@@ -59,6 +47,7 @@ class _DetailPlaceState extends State<DetailPlace> {
     // TODO: implement initState
     super.initState();
     getDetailPlace();
+    getReviewPlace();
     getME();
   }
 
@@ -82,43 +71,26 @@ class _DetailPlaceState extends State<DetailPlace> {
     return dropdownFavoriteName;
   }
 
-  Future getDetailPlace() async {
-    int p = 0;
+  Future<List> getDetailPlace() async {
     try {
       detail = await getPlaceID(widget.id);
-      len_image = detail['P_Image'].length;
-      len_type = detail['P_Type'].length;
-      len_festival = detail['P_Festival'].length;
-      len_review = detail['P_Review'].length;
-      description = detail['P_Description'];
-      address = detail['P_Address'];
-      name = detail['P_Name'];
-      initialCameraPosition =
-          LatLng(double.parse(detail['P_Lat']), double.parse(detail['P_Lng']));
+      double lati = double.parse(detail[0]['P_Lat']);
+      double long = double.parse(detail[0]['P_Lng']);
+      initialCameraPosition = LatLng(lati, long);
       _onMapCreate(_controller);
-      setMarkers(double.parse(detail['P_Lat']), double.parse(detail['P_Lng']));
-      for (int i = 0; i < len_image; i++) {
-        setState(() {
-          img.add(detail['P_Image'][i].toString());
-        });
-      }
-      for (int i = 0; i < len_type; i++) {
-        setState(() {
-          type.add(detail['P_Type'][i].toString());
-        });
-      }
-      for (int i = 0; i < len_festival; i++) {
-        setState(() {
-          festival.add(detail['P_Festival'][i].toString());
-        });
-      }
-      for (int i = 0; i < len_review; i++) {
-        p = p + int.parse(detail['P_Review'][i]['R_Point']);
-      }
-      point = p / len_review;
     } catch (e) {
       print(e);
     }
+    return detail;
+  }
+
+  Future<List> getReviewPlace() async {
+    try {
+      reviews = await get_Review(widget.id);
+    } catch (e) {
+      print(e);
+    }
+    return reviews!;
   }
 
   getME() async {
@@ -130,12 +102,14 @@ class _DetailPlaceState extends State<DetailPlace> {
   }
 
   void _onMapCreate(GoogleMapController controller) {
-    _controller = controller;
-    _controller.animateCamera(CameraUpdate.newCameraPosition(
-        CameraPosition(target: initialCameraPosition, zoom: 12)));
-  }
+    try {
+      _controller = controller;
+      _controller.animateCamera(CameraUpdate.newCameraPosition(
+          CameraPosition(target: initialCameraPosition, zoom: 15)));
+    } catch (e) {}
 
-  Future addReview() async {}
+    //setMarkers(initialCameraPosition.latitude, initialCameraPosition.longitude);
+  }
 
   void selectImages() async {
     if (imageFileList!.length == 5) {
@@ -144,7 +118,9 @@ class _DetailPlaceState extends State<DetailPlace> {
       try {
         final List<XFile>? selectedImages = await imagePicker.pickMultiImage();
         if (selectedImages!.isNotEmpty) {
-          imageFileList!.addAll(selectedImages);
+          for (int i = 0; i < selectedImages.length; i++) {
+            imageFileList!.add(selectedImages[i]);
+          }
         }
         setState(() {});
       } catch (e) {}
@@ -159,6 +135,30 @@ class _DetailPlaceState extends State<DetailPlace> {
           title: const Text('คำเตือน'),
           content: const Text(
               'รูปภาพครบ 5 รูปแล้ว โปรดลบออกแล้วทำรายการใหม่อีกครั้ง'),
+          actions: <Widget>[
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
+              child: const Text('ตกลง'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _dialogBuilderDropdown(BuildContext context) {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('คำเตือน'),
+          content: const Text(
+              'ยังไม่มีชื่อรายการโปรด กรุณาเพิ่มแล้วลองใหม่อีกครั้ง'),
           actions: <Widget>[
             TextButton(
               style: TextButton.styleFrom(
@@ -202,7 +202,7 @@ class _DetailPlaceState extends State<DetailPlace> {
                         setState(() {
                           closeplace = 'TRUE';
                         });
-                        String process = await closePlace(detail['P_ID']);
+                        String process = await closePlace(detail[0]['P_ID']);
                         if (process == 'TRUE') {
                           ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -222,6 +222,64 @@ class _DetailPlaceState extends State<DetailPlace> {
                         setState(() {
                           closeplace == 'FALSE';
                         });
+                        Navigator.pop(context);
+                      },
+                      child: Text('ยกเลิก')),
+                ],
+              ),
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showMyDialogDeleteReview(String rid) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('แจ้งเตือน'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('ต้องการลบการรีวิวนี้ออกใช่หรือไม่'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  ElevatedButton(
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStatePropertyAll(
+                              Color.fromARGB(255, 127, 97, 248))),
+                      onPressed: () async {
+                        String value = await remove_Review("remove", rid);
+                        if (value == "TRUE") {
+                          setState(() {
+                            getReviewPlace();
+                            getDetailPlace();
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('ลบการรีวิวสำเร็จ')));
+                          Navigator.pop(context);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('ไม่สามารถทำรายการได้')));
+                        }
+                      },
+                      child: Text('ยืนยัน')),
+                  ElevatedButton(
+                      style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStatePropertyAll(Colors.red)),
+                      onPressed: () async {
                         Navigator.pop(context);
                       },
                       child: Text('ยกเลิก')),
@@ -323,389 +381,528 @@ class _DetailPlaceState extends State<DetailPlace> {
         kToolbarHeight;
 
     return Scaffold(
-      body: ListView(
-        children: [
-          Container(
-            height: 0.4 * h,
-            width: w,
-            child: Stack(
-              children: [
-                Scrollbar(
-                  child: PageView.builder(
-                      itemCount: img.length,
-                      pageSnapping: true,
-                      padEnds: false,
-                      itemBuilder: (context, pagePosition) {
-                        return Container(
-                            child: Image.network(
-                          img[pagePosition],
-                          fit: BoxFit.fitHeight,
-                        ));
-                      }),
-                ),
-                Positioned(
-                  left: w * 0.02,
-                  top: h * 0.02,
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Color.fromARGB(150, 255, 255, 255)),
-                    child: IconButton(
-                      onPressed: () {
-                        Navigator.pop(context, 'TRUE');
-                      },
-                      icon: Icon(Icons.arrow_back_ios_new, color: Colors.black),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  right: w * 0.18,
-                  top: h * 0.02,
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Color.fromARGB(132, 255, 255, 255)),
-                    child: IconButton(
-                      onPressed: () {},
-                      icon: Icon(Icons.share, color: Colors.black),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  right: w * 0.02,
-                  top: h * 0.02,
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Color.fromARGB(132, 255, 255, 255)),
-                    child: PopupMenuButton<SampleItem>(
-                      initialValue: selectedMenu,
-                      // Callback that sets the selected popup menu item.
-                      onSelected: (SampleItem item) async {
-                        setState(() {
-                          selectedMenu = item;
-                        });
-                        print(selectedMenu.toString());
-
-                        if (selectedMenu == SampleItem.itemThree) {
-                          _showMyDialogDelete();
-                        }
-                      },
-                      itemBuilder: (BuildContext context) =>
-                          <PopupMenuEntry<SampleItem>>[
-                        const PopupMenuItem<SampleItem>(
-                          value: SampleItem.itemOne,
-                          child: Text(
-                            'แก้ไขสถานที่',
-                          ),
-                        ),
-                        const PopupMenuItem<SampleItem>(
-                          value: SampleItem.itemTwo,
-                          child: Text(
-                            'ประวัติการแก้ไข',
-                          ),
-                        ),
-                        const PopupMenuItem<SampleItem>(
-                          value: SampleItem.itemThree,
-                          child: Text(
-                            'ปิดการใช้งานของสถานที่',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-              padding: EdgeInsets.only(
-                  left: w * 0.025,
-                  right: w * 0.025,
-                  top: h * 0.02,
-                  bottom: h * 0.02),
-              child: Column(
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        name,
-                        style: TextStyle(
-                            fontSize: w * 0.05, fontWeight: FontWeight.bold),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          _showMyDialogSelect();
-                        },
-                        icon: Icon(Icons.bookmark_border,
-                            color: Color.fromARGB(122, 116, 63, 238)),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      box(point.toStringAsFixed(1)),
-                      Padding(
-                        padding: EdgeInsets.only(left: w * 0.01),
-                        child: Text(
-                          '( $len_review รีวิว)',
-                          style: TextStyle(
-                              fontSize: w * 0.0375,
-                              color: Color.fromARGB(255, 116, 115, 115)),
-                        ),
-                      )
-                    ],
-                  ),
-                ],
-              )),
-          Padding(
-            padding: EdgeInsets.only(
-                left: w * 0.025,
-                right: w * 0.025,
-                top: h * 0.01,
-                bottom: h * 0.01),
-            child: boxDescription(description),
-          ),
-          Padding(
-            padding: EdgeInsets.all(10),
-            child: Wrap(
-              crossAxisAlignment: WrapCrossAlignment.start,
-              alignment: WrapAlignment.spaceAround,
-              direction: Axis.horizontal,
-              runSpacing: 3,
-              children: [
-                boxButtonReview(
-                    'เขียนรีวิว',
-                    Icon(
-                      Icons.reviews_sharp,
-                      color: Colors.white,
-                    ),
-                    "REVIEW"),
-                boxButtonAddImage(
-                    'เพิ่มรูป',
-                    Icon(
-                      Icons.camera_enhance,
-                      color: Colors.white,
-                    ),
-                    "IMAGE"),
-                boxButtonCheckin(
-                  'เช็คอิน',
-                  Icon(
-                    Icons.location_on,
-                    color: Colors.white,
-                  ),
-                  "CHECKIN",
-                  widget.id,
-                ),
-              ],
-            ),
-          ),
-          DefaultTabController(
-            length: 2, // length of tabs
-            initialIndex: 0,
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Container(
-                    color: Colors.transparent,
-                    child: TabBar(
-                      labelColor: Colors.blueAccent,
-                      unselectedLabelColor: Colors.black,
-                      tabs: [
-                        Tab(text: 'ข้อมูลสถานที่'),
-                        Tab(text: 'การรีวิว'),
-                      ],
-                    ),
-                  ),
-                  Container(
-                      color: Colors.transparent,
-                      height: h * 0.525, //height of TabBarView
-                      padding: EdgeInsets.only(top: 5),
-                      child: TabBarView(children: <Widget>[
-                        ListView(
+        body: Container(
+            width: w * 1,
+            height: h * 1.2,
+            child: Expanded(
+                child: FutureBuilder(
+                    future: getDetailPlace(),
+                    builder:
+                        (BuildContext context, AsyncSnapshot<List> snapshot) {
+                      if (ConnectionState.active != null && !snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      return Scrollbar(
+                        child: ListView(
                           children: [
                             Container(
-                              margin: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                              height: h * 0.2,
-                              child: Expanded(
-                                child: GoogleMap(
-                                  mapType: MapType.normal,
-                                  markers: Set<Marker>.of(markers),
-                                  initialCameraPosition: CameraPosition(
-                                      target: initialCameraPosition, zoom: 14),
-                                  onMapCreated: _onMapCreate,
-                                ),
-                              ),
-                            ),
-                            Card(
-                              child: ListTile(
-                                leading: Icon(
-                                  Icons.location_on,
-                                  color: Color.fromARGB(167, 81, 69, 250),
-                                ),
-                                title: Text(
-                                  address,
-                                  style: TextStyle(fontSize: w * 0.035),
-                                ),
-                              ),
-                            ),
-                            Card(
-                              child: ListTile(
-                                leading: Icon(
-                                  Icons.home,
-                                  color: Color.fromARGB(167, 81, 69, 250),
-                                ),
-                                title: Text(
-                                  type
-                                      .toString()
-                                      .replaceAll('[', '')
-                                      .replaceAll(']', ''),
-                                  style: TextStyle(fontSize: w * 0.035),
-                                ),
-                              ),
-                            ),
-                            Card(
-                              child: ListTile(
-                                leading: Icon(
-                                  Icons.festival_rounded,
-                                  color: Color.fromARGB(167, 81, 69, 250),
-                                ),
-                                title: Text(
-                                  festival
-                                      .toString()
-                                      .replaceAll('[', '')
-                                      .replaceAll(']', ''),
-                                  style: TextStyle(fontSize: w * 0.035),
-                                ),
-                              ),
-                            ),
-                            Padding(padding: EdgeInsets.all(10))
-                          ],
-                        ),
-                        Container(
-                            padding: EdgeInsets.only(bottom: 10, top: 5),
-                            child: Scrollbar(
-                              child: ListView(
+                              height: 0.4 * h,
+                              width: w,
+                              child: Stack(
                                 children: [
-                                  for (int i = 0; i < len_review; i++)
-                                    ListTile(
-                                      leading: InkWell(
-                                        onTap: () async {
-                                          if (detail['P_Review'][i]['R_MID'] ==
-                                              id_me) {
-                                            String value = await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        Profile(
-                                                            id: detail[
-                                                                    'P_Review']
-                                                                [i]['R_MID'],
-                                                            info: 'me')));
-                                            if (value == "TRUE") {
-                                              setState(() {
-                                                getDetailPlace();
-                                              });
-                                            }
-                                          } else {
-                                            String value = await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        Profile(
-                                                            id: detail[
-                                                                    'P_Review']
-                                                                [i]['R_MID'],
-                                                            info: 'other')));
-                                            if (value == "TRUE") {
-                                              setState(() {
-                                                getDetailPlace();
-                                              });
-                                            }
+                                  Scrollbar(
+                                    child: PageView.builder(
+                                        itemCount: detail[0]['P_Image'].length,
+                                        pageSnapping: true,
+                                        padEnds: false,
+                                        itemBuilder: (context, pagePosition) {
+                                          return Container(
+                                              child: Image.network(
+                                            detail[0]['P_Image'][pagePosition],
+                                            fit: BoxFit.fitHeight,
+                                          ));
+                                        }),
+                                  ),
+                                  Positioned(
+                                    left: w * 0.02,
+                                    top: h * 0.02,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          color: Color.fromARGB(
+                                              150, 255, 255, 255)),
+                                      child: IconButton(
+                                        onPressed: () {
+                                          Navigator.pop(context, 'FALSE');
+                                        },
+                                        icon: Icon(Icons.arrow_back_ios_new,
+                                            color: Colors.black),
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    right: w * 0.18,
+                                    top: h * 0.02,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          color: Color.fromARGB(
+                                              132, 255, 255, 255)),
+                                      child: IconButton(
+                                        onPressed: () {},
+                                        icon: Icon(Icons.share,
+                                            color: Colors.black),
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    right: w * 0.02,
+                                    top: h * 0.02,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          color: Color.fromARGB(
+                                              132, 255, 255, 255)),
+                                      child: PopupMenuButton<SampleItem>(
+                                        initialValue: selectedMenu,
+                                        // Callback that sets the selected popup menu item.
+                                        onSelected: (SampleItem item) async {
+                                          setState(() {
+                                            selectedMenu = item;
+                                          });
+                                          print(selectedMenu.toString());
+
+                                          if (selectedMenu ==
+                                              SampleItem.itemThree) {
+                                            _showMyDialogDelete();
                                           }
                                         },
-                                        child: CircleAvatar(
-                                          radius: 25,
-                                          backgroundImage: NetworkImage(
-                                              detail['P_Review'][i]['R_Image'],
-                                              scale: 1.0),
-                                        ),
-                                      ),
-                                      title: Wrap(
-                                        alignment: WrapAlignment.start,
-                                        crossAxisAlignment:
-                                            WrapCrossAlignment.center,
-                                        children: [
-                                          Text(detail['P_Review'][i]['R_Name'] +
-                                              ' ' +
-                                              detail['P_Review'][i]['R_Point']),
-                                          Icon(
-                                            Icons.star,
-                                            color: Colors.yellow,
-                                          )
-                                        ],
-                                      ),
-                                      subtitle: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(detail['P_Review'][i]['R_Text']),
-                                          Container(
-                                            height: detail["P_Review"][i]
-                                                            ["R_ImageReview"]
-                                                        .length <=
-                                                    0
-                                                ? 0
-                                                : detail["P_Review"][i][
-                                                                "R_ImageReview"]
-                                                            .length <
-                                                        4
-                                                    ? h * 0.115
-                                                    : h * 0.23,
-                                            child: GridView.count(
-                                              // Create a grid with 2 columns. If you change the scrollDirection to
-                                              // horizontal, this produces 2 rows.
-                                              crossAxisCount: 3,
-                                              // Generate 100 widgets that display their index in the List.
-                                              children: List.generate(
-                                                  detail["P_Review"][i]
-                                                          ["R_ImageReview"]
-                                                      .length, (index) {
-                                                return Padding(
-                                                  padding: EdgeInsets.all(5),
-                                                  child: Image(
-                                                    fit: BoxFit.fill,
-                                                    image: NetworkImage(
-                                                        detail["P_Review"][i][
-                                                                "R_ImageReview"]
-                                                            [index],
-                                                        scale: 1.0),
-                                                  ),
-                                                );
-                                              }),
+                                        itemBuilder: (BuildContext context) =>
+                                            <PopupMenuEntry<SampleItem>>[
+                                          const PopupMenuItem<SampleItem>(
+                                            value: SampleItem.itemOne,
+                                            child: Text(
+                                              'แก้ไขสถานที่',
                                             ),
                                           ),
-                                          Padding(padding: EdgeInsets.all(10))
+                                          const PopupMenuItem<SampleItem>(
+                                            value: SampleItem.itemTwo,
+                                            child: Text(
+                                              'ประวัติการแก้ไข',
+                                            ),
+                                          ),
+                                          const PopupMenuItem<SampleItem>(
+                                            value: SampleItem.itemThree,
+                                            child: Text(
+                                              'ปิดการใช้งานของสถานที่',
+                                            ),
+                                          ),
                                         ],
                                       ),
-                                      trailing: id_me ==
-                                              detail['P_Review'][i]['R_MID']
-                                          ? IconButton(
-                                              onPressed: () {},
-                                              icon: Icon(Icons.edit))
-                                          : null,
                                     ),
-                                  Divider(height: 0),
+                                  ),
                                 ],
                               ),
-                            )),
-                      ]))
-                ]),
-          ),
-        ],
-      ),
-    );
+                            ),
+                            Padding(
+                                padding: EdgeInsets.only(
+                                    left: w * 0.025,
+                                    right: w * 0.025,
+                                    top: h * 0.02,
+                                    bottom: h * 0.02),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          detail[0]["P_Name"],
+                                          style: TextStyle(
+                                              fontSize: w * 0.05,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        IconButton(
+                                          onPressed: () {
+                                            if (dropdownFavoriteName.isEmpty) {
+                                              _dialogBuilderDropdown(context);
+                                            } else {
+                                              _showMyDialogSelect();
+                                            }
+                                          },
+                                          icon: Icon(Icons.bookmark_border,
+                                              color: Color.fromARGB(
+                                                  122, 116, 63, 238)),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        box(detail[0]["P_Point"]),
+                                        Padding(
+                                          padding:
+                                              EdgeInsets.only(left: w * 0.01),
+                                          child: Text(
+                                            '( ${detail[0]['P_Review'].length} รีวิว)',
+                                            style: TextStyle(
+                                                fontSize: w * 0.0375,
+                                                color: Color.fromARGB(
+                                                    255, 116, 115, 115)),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ],
+                                )),
+                            Padding(
+                              padding: EdgeInsets.only(
+                                  left: w * 0.025,
+                                  right: w * 0.025,
+                                  top: h * 0.01,
+                                  bottom: h * 0.01),
+                              child: boxDescription(detail[0]["P_Description"]),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.all(10),
+                              child: Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.start,
+                                alignment: WrapAlignment.spaceAround,
+                                direction: Axis.horizontal,
+                                runSpacing: 3,
+                                children: [
+                                  boxButtonReview(
+                                      'เขียนรีวิว',
+                                      Icon(
+                                        Icons.reviews_sharp,
+                                        color: Colors.white,
+                                      ),
+                                      "REVIEW",
+                                      widget.id),
+                                  boxButtonAddImage(
+                                      'เพิ่มรูป',
+                                      Icon(
+                                        Icons.camera_enhance,
+                                        color: Colors.white,
+                                      ),
+                                      "IMAGE"),
+                                  boxButtonCheckin(
+                                    'เช็คอิน',
+                                    Icon(
+                                      Icons.location_on,
+                                      color: Colors.white,
+                                    ),
+                                    "CHECKIN",
+                                    widget.id,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            DefaultTabController(
+                              length: 2, // length of tabs
+                              initialIndex: 0,
+                              child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: <Widget>[
+                                    Container(
+                                      color: Colors.transparent,
+                                      child: TabBar(
+                                        labelColor: Colors.blueAccent,
+                                        unselectedLabelColor: Colors.black,
+                                        tabs: [
+                                          Tab(text: 'ข้อมูลสถานที่'),
+                                          Tab(text: 'การรีวิว'),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                        color: Colors.transparent,
+                                        height:
+                                            h * 0.525, //height of TabBarView
+                                        padding: EdgeInsets.only(top: 5),
+                                        child: TabBarView(children: <Widget>[
+                                          Tab(
+                                            child: ListView(
+                                              children: [
+                                                Container(
+                                                  margin: EdgeInsets.fromLTRB(
+                                                      0, 5, 0, 5),
+                                                  height: h * 0.2,
+                                                  child: Expanded(
+                                                    child: GoogleMap(
+                                                      mapType: MapType.normal,
+                                                      markers: {
+                                                        Marker(
+                                                          markerId: MarkerId(
+                                                              detail[0]
+                                                                  ["P_Name"]),
+                                                          position: LatLng(
+                                                              initialCameraPosition
+                                                                  .latitude,
+                                                              initialCameraPosition
+                                                                  .longitude),
+                                                        ),
+                                                      },
+                                                      initialCameraPosition:
+                                                          CameraPosition(
+                                                              target:
+                                                                  initialCameraPosition,
+                                                              zoom: 14),
+                                                      onMapCreated:
+                                                          _onMapCreate,
+                                                    ),
+                                                  ),
+                                                ),
+                                                Card(
+                                                  child: ListTile(
+                                                    leading: Icon(
+                                                      Icons.location_on,
+                                                      color: Color.fromARGB(
+                                                          167, 81, 69, 250),
+                                                    ),
+                                                    title: Text(
+                                                      detail[0]["P_Address"],
+                                                      style: TextStyle(
+                                                          fontSize: w * 0.035),
+                                                    ),
+                                                  ),
+                                                ),
+                                                Card(
+                                                  child: ListTile(
+                                                    leading: Icon(
+                                                      Icons.home,
+                                                      color: Color.fromARGB(
+                                                          167, 81, 69, 250),
+                                                    ),
+                                                    title: Text(
+                                                      detail[0]['P_Type']
+                                                          .toString()
+                                                          .replaceAll('[', '')
+                                                          .replaceAll(']', ''),
+                                                      style: TextStyle(
+                                                          fontSize: w * 0.035),
+                                                    ),
+                                                  ),
+                                                ),
+                                                Card(
+                                                  child: ListTile(
+                                                    leading: Icon(
+                                                      Icons.festival_rounded,
+                                                      color: Color.fromARGB(
+                                                          167, 81, 69, 250),
+                                                    ),
+                                                    title: Text(
+                                                      detail[0]["P_Festival"]
+                                                          .toString()
+                                                          .replaceAll('[', '')
+                                                          .replaceAll(']', ''),
+                                                      style: TextStyle(
+                                                          fontSize: w * 0.035),
+                                                    ),
+                                                  ),
+                                                ),
+                                                Padding(
+                                                    padding: EdgeInsets.all(10))
+                                              ],
+                                            ),
+                                          ),
+                                          Tab(
+                                            child: Container(
+                                              width: 1 * w,
+                                              height: h * 0.565,
+                                              padding: EdgeInsets.only(
+                                                  bottom: 10, top: 5),
+                                              child: ListView(
+                                                children: [
+                                                  for (int i = 0;
+                                                      i < reviews!.length;
+                                                      i++)
+                                                    Container(
+                                                        width: w * 1,
+                                                        decoration: BoxDecoration(
+                                                            border: Border(
+                                                                bottom: BorderSide(
+                                                                    color: Colors
+                                                                        .black12,
+                                                                    width:
+                                                                        0.5))),
+                                                        child: ListTile(
+                                                          leading: InkWell(
+                                                            onTap: () {
+                                                              Navigator.push(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                      builder: (context) => Profile(
+                                                                          id: reviews![i]
+                                                                              [
+                                                                              "R_MID"],
+                                                                          info: reviews![i]["R_MID"] == id_me
+                                                                              ? "me"
+                                                                              : "other")));
+                                                            },
+                                                            child: CircleAvatar(
+                                                              radius: 20,
+                                                              backgroundImage:
+                                                                  NetworkImage(
+                                                                      reviews![
+                                                                              i]
+                                                                          [
+                                                                          "R_Image"],
+                                                                      scale:
+                                                                          1.0),
+                                                            ),
+                                                          ),
+                                                          title: Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .spaceBetween,
+                                                            children: [
+                                                              Container(
+                                                                  width:
+                                                                      w * 0.55,
+                                                                  height:
+                                                                      h * .03,
+                                                                  alignment:
+                                                                      Alignment
+                                                                          .centerLeft,
+                                                                  child: Row(
+                                                                    mainAxisAlignment:
+                                                                        MainAxisAlignment
+                                                                            .start,
+                                                                    children: [
+                                                                      InkWell(
+                                                                        onTap:
+                                                                            () {
+                                                                          Navigator.push(
+                                                                              context,
+                                                                              MaterialPageRoute(builder: (context) => Profile(id: reviews![i]["R_MID"], info: reviews![i]["R_MID"] == id_me ? "me" : "other")));
+                                                                        },
+                                                                        child: Text(
+                                                                            "${reviews![i]["R_Name"]}  ${reviews![i]["R_Point"]}"),
+                                                                      ),
+                                                                      Icon(
+                                                                        Icons
+                                                                            .star,
+                                                                        size: w *
+                                                                            0.055,
+                                                                        color: Colors
+                                                                            .amber,
+                                                                      ),
+                                                                    ],
+                                                                  )),
+                                                              id_me ==
+                                                                      reviews![
+                                                                              i]
+                                                                          [
+                                                                          "R_MID"]
+                                                                  ? Container(
+                                                                      width: w *
+                                                                          0.2,
+                                                                      height: h *
+                                                                          0.03,
+                                                                      child: Row(
+                                                                          mainAxisAlignment:
+                                                                              MainAxisAlignment.spaceAround,
+                                                                          children: [
+                                                                            InkWell(
+                                                                              onTap: () async {
+                                                                                String value = await Navigator.push(context, MaterialPageRoute(builder: (builder) => EditReview(rid: reviews![i]["R_ID"])));
+                                                                                if (value == "TRUE") {
+                                                                                  setState(() {
+                                                                                    getReviewPlace();
+                                                                                    getDetailPlace();
+                                                                                  });
+                                                                                } else {}
+                                                                              },
+                                                                              child: Icon(Icons.edit),
+                                                                            ),
+                                                                            InkWell(
+                                                                              onTap: () {
+                                                                                print(reviews![i]["R_ID"]);
+                                                                                _showMyDialogDeleteReview(reviews![i]["R_ID"]);
+                                                                              },
+                                                                              child: Icon(Icons.delete),
+                                                                            )
+                                                                          ]),
+                                                                    )
+                                                                  : Container()
+                                                            ],
+                                                          ),
+                                                          subtitle: Container(
+                                                            child: Column(
+                                                                crossAxisAlignment:
+                                                                    CrossAxisAlignment
+                                                                        .start,
+                                                                children: [
+                                                                  Container(
+                                                                    alignment:
+                                                                        Alignment
+                                                                            .topLeft,
+                                                                    height: reviews![i]["R_Text"].toString().length >
+                                                                            80
+                                                                        ? h *
+                                                                            0.12
+                                                                        : reviews![i]["R_Text"].toString().length >
+                                                                                40
+                                                                            ? h *
+                                                                                0.08
+                                                                            : h *
+                                                                                0.04,
+                                                                    child: Text(
+                                                                      reviews![
+                                                                              i]
+                                                                          [
+                                                                          "R_Text"],
+                                                                      textAlign:
+                                                                          TextAlign
+                                                                              .left,
+                                                                      style: TextStyle(
+                                                                          height:
+                                                                              1.5),
+                                                                    ),
+                                                                  ),
+                                                                  reviews![i]["R_ImageReview"]
+                                                                              .length !=
+                                                                          0
+                                                                      ? Container(
+                                                                          height: h *
+                                                                              0.09,
+                                                                          width: w *
+                                                                              0.7,
+                                                                          alignment: Alignment
+                                                                              .center,
+                                                                          child:
+                                                                              Expanded(
+                                                                            child:
+                                                                                GridView.builder(
+                                                                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                                                                crossAxisSpacing: 1,
+                                                                                mainAxisSpacing: 1,
+                                                                                crossAxisCount: 5,
+                                                                              ),
+                                                                              itemCount: reviews![i]["R_ImageReview"].length,
+                                                                              itemBuilder: (context, no) {
+                                                                                return Stack(
+                                                                                  children: [
+                                                                                    Image(
+                                                                                      fit: BoxFit.fitHeight, // Fixes border issues
+                                                                                      width: 75,
+                                                                                      height: 75,
+                                                                                      image: NetworkImage(reviews![i]["R_ImageReview"][no], scale: 1.0),
+                                                                                    ),
+                                                                                  ],
+                                                                                );
+                                                                              },
+                                                                            ),
+                                                                          ))
+                                                                      : Container()
+                                                                ]),
+                                                          ),
+                                                        ))
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ]))
+                                  ]),
+                            ),
+                          ],
+                        ),
+                      );
+                    }))));
   }
 
   Container box(String str) {
@@ -742,10 +939,17 @@ class _DetailPlaceState extends State<DetailPlace> {
         kToolbarHeight;
     return InkWell(
       onTap: () async {
-        // String value = await Navigator.push(
-        //     context, MaterialPageRoute(builder: (context) => AddCheckinPage()));
-        // if (value == "TRUE") {
-        // } else {}
+        String value = await Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => AddImagePage(
+                      pid: widget.id,
+                    )));
+        if (value == "TRUE") {
+          setState(() {
+            getDetailPlace();
+          });
+        } else {}
       },
       child: Container(
           padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
@@ -768,17 +972,25 @@ class _DetailPlaceState extends State<DetailPlace> {
     );
   }
 
-  InkWell boxButtonReview(String str, Icon icon, String select) {
+  InkWell boxButtonReview(String str, Icon icon, String select, String pid) {
     double w = displayWidth(context);
     double h = displayWidth(context) -
         MediaQuery.of(context).padding.top -
         kToolbarHeight;
     return InkWell(
       onTap: () async {
-        // String value = await Navigator.push(
-        //     context, MaterialPageRoute(builder: (context) => AddCheckinPage()));
-        // if (value == "TRUE") {
-        // } else {}
+        String value = await Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => AddReview(
+                      pid: pid,
+                    )));
+        if (value == "TRUE") {
+          setState(() {
+            getReviewPlace();
+            getDetailPlace();
+          });
+        } else {}
       },
       child: Container(
           padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
@@ -860,17 +1072,9 @@ class _DetailPlaceState extends State<DetailPlace> {
     );
   }
 
-  setMarkers(double lat, double lng) {
-    markers.add(
-      Marker(
-        markerId: MarkerId(name),
-        position: LatLng(lat, lng),
-        infoWindow: InfoWindow(title: name),
-        icon: BitmapDescriptor.defaultMarker,
-      ),
-    );
-    setState(() {});
-  }
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }
 
 class AddCheckinPage extends StatefulWidget {
