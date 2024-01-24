@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
-import 'package:location/location.dart';
 import 'package:projectbdtravel/API/apiUser.dart';
 import 'package:projectbdtravel/Component/tapBar.dart';
 import 'package:projectbdtravel/Page/register.page.dart';

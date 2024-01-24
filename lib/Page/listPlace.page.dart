@@ -6,8 +6,6 @@ import 'package:projectbdtravel/API/apiPlace.dart';
 import 'package:projectbdtravel/Page/addPlace.page.dart';
 import 'package:projectbdtravel/Page/detailPlace.page.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:projectbdtravel/Tools/style.tools.dart';
 
 class listPlace extends StatefulWidget {
   const listPlace({super.key});

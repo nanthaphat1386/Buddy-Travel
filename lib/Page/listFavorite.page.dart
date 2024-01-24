@@ -4,7 +4,6 @@ import 'package:projectbdtravel/API/apiFavorite.dart';
 import 'package:projectbdtravel/Page/addFavorite.page.dart';
 import 'package:projectbdtravel/Page/detailPlace.page.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class List_Favorite extends StatefulWidget {
   final String id;
