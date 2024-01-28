@@ -55,6 +55,25 @@ Future<List> getPlaceByName(String lati, String long, String name) async {
   return data;
 }
 
+Future<List> autoPlace(String text) async {
+  String key = "AIzaSyBl8EYKevPTilZ1NUGXd8QodlCvVHwJ2uc";
+  Uri url = Uri.parse(
+      'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${text}&key=${key}');
+  var response =
+      await http.get(url);
+  // ignore: prefer_typing_uninitialized_variables
+  var data;
+  try {
+    data = jsonDecode(response.body);
+  } catch (e) {}
+
+  if (data.toString().isEmpty) {
+    data = [];
+  }
+  data = data["predictions"];
+  return data;
+}
+
 Future<String> addPlace(
     String id,
     TextEditingController name,
