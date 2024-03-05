@@ -10,6 +10,7 @@ import 'package:projectbdtravel/API/apiPlace.dart';
 import 'package:projectbdtravel/Page/deleteTypeFes.page.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
 import 'package:projectbdtravel/Tools/style.tools.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddPlace extends StatefulWidget {
   const AddPlace({super.key});
@@ -53,16 +54,29 @@ class _AddPlaceState extends State<AddPlace> {
   TextEditingController lat_place = new TextEditingController();
   TextEditingController lng_place = new TextEditingController();
   TextEditingController noProvince = new TextEditingController();
+  String ID = "";
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    getProfile();
     List_Type();
     List_Festival();
     List_Province();
     getTypePlace();
     getFestivalPlace();
+  }
+
+  getProfile() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      setState(() {
+        ID = prefs.getString('id').toString();
+      });
+    } catch (e) {
+      print(e);
+    }
   }
 
   // ignore: non_constant_identifier_names
@@ -737,167 +751,168 @@ class _AddPlaceState extends State<AddPlace> {
         width: w * 1,
         height: h * 1.95,
         child: SingleChildScrollView(
-            child: Container(
-                padding: EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // myTextField('ชื่อสถานที่', name_Place),
-                    Text("ชื่อสถานที่", style: styleText.styleHeaderPlace),
-                    SizedBox(
-                      width: w * 1,
-                      height: h * 0.2,
-                      child: textAutoNamePlace(),
-                    ),
-                    Container(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          dropdownMenu(type_Name, 'ประเภทสถานที่', 'type'),
-                          dropdownMenu(festival_Name, 'เทศกาล', 'festival'),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: EdgeInsets.only(top: 5, bottom: 5),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          emptyBoxShow(selects_type),
-                          emptyBoxShow(selects_fes),
-                        ],
-                      ),
-                    ),
-                    myTextFieldWidthMax(
-                        'ข้อความอธิบาย', description_Place, 0.4, 5),
-                    myTextFieldWidthMax('ที่อยู่', address_Place, 0.2, 2),
-                    Row(
+          child: Container(
+              padding: EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // myTextField('ชื่อสถานที่', name_Place),
+                  Text("ชื่อสถานที่", style: styleText.styleHeaderPlace),
+                  SizedBox(
+                    width: w * 1,
+                    height: h * 0.2,
+                    child: textAutoNamePlace(),
+                  ),
+                  Container(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        dropdownMenu(allProvince, 'จังหวัด', 'province'),
-                        myTextFieldWidthMid('รหัสไปรษณีย์', noProvince, true),
+                        dropdownMenu(type_Name, 'ประเภทสถานที่', 'type'),
+                        dropdownMenu(festival_Name, 'เทศกาล', 'festival'),
                       ],
                     ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  ),
+                  Container(
+                    padding: EdgeInsets.only(top: 5, bottom: 5),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        ElevatedButton(
+                        emptyBoxShow(selects_type),
+                        emptyBoxShow(selects_fes),
+                      ],
+                    ),
+                  ),
+                  myTextFieldWidthMax(
+                      'ข้อความอธิบาย', description_Place, 0.4, 5),
+                  myTextFieldWidthMax('ที่อยู่', address_Place, 0.2, 2),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      dropdownMenu(allProvince, 'จังหวัด', 'province'),
+                      myTextFieldWidthMid('รหัสไปรษณีย์', noProvince, true),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      ElevatedButton(
+                          style: ButtonStyle(
+                              backgroundColor: MaterialStatePropertyAll(
+                                  HexColor('#9C9AFC'))),
+                          onPressed: () {
+                            selectImages();
+                          },
+                          child: Text(
+                            'เพิ่มรูปภาพ',
+                            style: TextStyle(fontFamily: 'Urbanist'),
+                          )),
+                      BoxImageShow(),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                          width: w * 0.5,
+                          height: h * 0.145,
+                          child: ElevatedButton(
                             style: ButtonStyle(
-                                backgroundColor: MaterialStatePropertyAll(
-                                    HexColor('#9C9AFC'))),
-                            onPressed: () {
-                              selectImages();
+                                backgroundColor:
+                                    MaterialStatePropertyAll(purpleBorder)),
+                            child: Text('เลือกสถานที่'),
+                            onPressed: () async {
+                              var ans = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MapMarkerPlace(),
+                                  ));
+                              if (ans == 'false') {
+                              } else {
+                                lat_place.text = ans.latitude.toString();
+                                lng_place.text = ans.longitude.toString();
+                              }
                             },
-                            child: Text(
-                              'เพิ่มรูปภาพ',
-                              style: TextStyle(fontFamily: 'Urbanist'),
-                            )),
-                        BoxImageShow(),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                            width: w * 0.5,
-                            height: h * 0.145,
-                            child: ElevatedButton(
-                              style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStatePropertyAll(purpleBorder)),
-                              child: Text('เลือกสถานที่'),
-                              onPressed: () async {
-                                var ans = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => MapMarkerPlace(),
-                                    ));
-                                if (ans == 'false') {
+                          ))
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      myTextFieldWidthMid('ละติจูด', lat_place, false),
+                      myTextFieldWidthMid('ลองติจูด', lng_place, false),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 15,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                          width: w * 0.5,
+                          height: h * 0.145,
+                          child: ElevatedButton(
+                            style: ButtonStyle(
+                                backgroundColor:
+                                    MaterialStatePropertyAll(purpleBorder)),
+                            child: Text('เพิ่มสถานที่ท่องเที่ยว'),
+                            onPressed: () async {
+                              if (name_Place.text.isNotEmpty &&
+                                  type.isNotEmpty &&
+                                  imageFileList!.isNotEmpty &&
+                                  festival.isNotEmpty &&
+                                  description_Place.text.isNotEmpty &&
+                                  address_Place.text.isNotEmpty &&
+                                  provinceValue != '' &&
+                                  noProvince.text.isNotEmpty &&
+                                  lat_place.text.isNotEmpty &&
+                                  lng_place.text.isNotEmpty) {
+                                String ans = await addPlace(
+                                    ID,
+                                    'AUTO',
+                                    name_Place,
+                                    description_Place,
+                                    '${address_Place.text} $provinceValue ${noProvince.text}',
+                                    lat_place,
+                                    lng_place,
+                                    DateFormat('dd-MM-yyyy')
+                                        .format(DateTime.now()));
+                                if (ans == 'FASLE' || ans == 'FALSE INSERT') {
+                                  print('no insert');
                                 } else {
-                                  lat_place.text = ans.latitude.toString();
-                                  lng_place.text = ans.longitude.toString();
+                                  addFesType(ans);
+                                  uploadPhoto(ans);
+                                  Timer(const Duration(seconds: 2), () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                'เพิ่มสถานที่ท่องเที่ยวสำเร็จ')));
+                                    Navigator.pop(context, 'true');
+                                  });
                                 }
-                              },
-                            ))
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        myTextFieldWidthMid('ละติจูด', lat_place, false),
-                        myTextFieldWidthMid('ลองติจูด', lng_place, false),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 15,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                            width: w * 0.5,
-                            height: h * 0.145,
-                            child: ElevatedButton(
-                              style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStatePropertyAll(purpleBorder)),
-                              child: Text('เพิ่มสถานที่ท่องเที่ยว'),
-                              onPressed: () async {
-                                if (name_Place.text.isNotEmpty &&
-                                    type.isNotEmpty &&
-                                    imageFileList!.isNotEmpty &&
-                                    festival.isNotEmpty &&
-                                    description_Place.text.isNotEmpty &&
-                                    address_Place.text.isNotEmpty &&
-                                    provinceValue != '' &&
-                                    noProvince.text.isNotEmpty &&
-                                    lat_place.text.isNotEmpty &&
-                                    lng_place.text.isNotEmpty) {
-                                  String ans = await addPlace(
-                                      'AUTO',
-                                      name_Place,
-                                      description_Place,
-                                      '${address_Place.text} $provinceValue ${noProvince.text}',
-                                      lat_place,
-                                      lng_place,
-                                      DateFormat('dd-MM-yyyy')
-                                          .format(DateTime.now()));
-                                  if (ans == 'FASLE' || ans == 'FALSE INSERT') {
-                                    print('no insert');
-                                  } else {
-                                    addFesType(ans);
-                                    uploadPhoto(ans);
-                                    Timer(const Duration(seconds: 2), () {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(const SnackBar(
-                                              content: Text(
-                                                  'เพิ่มสถานที่ท่องเที่ยวสำเร็จ')));
-                                      Navigator.pop(context, 'true');
-                                    });
-                                  }
-                                } else {
-                                  ScaffoldMessenger.of(context)
-                                          .showSnackBar(const SnackBar(
-                                              content: Text(
-                                                  'ไม่สามารถเพิ่มข้อมูลสถานที่ท่องเที่ยวได้ กรุณาลองใหม่อีกครั้ง')));
-                                }
-                              },
-                            ))
-                      ],
-                    ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                  ],
-                )),
-          ),
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text(
+                                            'ไม่สามารถเพิ่มข้อมูลสถานที่ท่องเที่ยวได้ กรุณาลองใหม่อีกครั้ง')));
+                              }
+                            },
+                          ))
+                    ],
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                ],
+              )),
+        ),
       );
     }
 

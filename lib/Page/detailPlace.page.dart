@@ -9,6 +9,8 @@ import 'package:projectbdtravel/API/apiPlace.dart';
 import 'package:projectbdtravel/API/apiPost.dart';
 import 'package:projectbdtravel/API/apiReview.dart';
 import 'package:projectbdtravel/Page/addPlace.page.dart';
+import 'package:projectbdtravel/Page/editPlace.page.dart';
+import 'package:projectbdtravel/Page/history.page.dart';
 import 'package:projectbdtravel/Page/profile.page.dart';
 import 'package:projectbdtravel/Page/review.page.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
@@ -462,6 +464,24 @@ class _DetailPlaceState extends State<DetailPlace>
                                           if (selectedMenu ==
                                               SampleItem.itemThree) {
                                             _showMyDialogDelete();
+                                          } else if (selectedMenu ==
+                                              SampleItem.itemOne) {
+                                            String value = await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        EditPlace(id: widget.id,)));
+                                                        if(value == "TRUE"){
+                                                          setState(() {
+                                                            getDetailPlace();
+                                                          });
+                                                        }
+                                          }else{
+                                             Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        History_Place(id: widget.id,)));
                                           }
                                         },
                                         itemBuilder: (BuildContext context) =>
@@ -506,7 +526,15 @@ class _DetailPlaceState extends State<DetailPlace>
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
-                                          detail[0]["P_Name"],
+                                          detail[0]["P_Name"]
+                                                      .toString()
+                                                      .length <
+                                                  26
+                                              ? detail[0]["P_Name"]
+                                              : detail[0]["P_Name"]
+                                                      .toString()
+                                                      .substring(0, 26) +
+                                                  "...",
                                           style: TextStyle(
                                               fontSize: w * 0.05,
                                               fontWeight: FontWeight.bold),

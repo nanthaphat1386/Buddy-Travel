@@ -55,12 +55,27 @@ Future<List> getPlaceByName(String lati, String long, String name) async {
   return data;
 }
 
+Future<List> getCheckinMap(String id) async {
+  Uri url = Uri.parse(
+      'https://bdtravel.comsciproject.net/buddy_travel/api/getCheckinMap.php');
+  var response = await http.post(url, body: {'id': id});
+  // ignore: prefer_typing_uninitialized_variables
+  var data;
+  try {
+    data = jsonDecode(response.body);
+  } catch (e) {}
+
+  if (data.toString().isEmpty) {
+    data = 'ไม่มีข้อมูล';
+  }
+  return data;
+}
+
 Future<List> autoPlace(String text) async {
   String key = "AIzaSyBl8EYKevPTilZ1NUGXd8QodlCvVHwJ2uc";
   Uri url = Uri.parse(
       'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${text}&key=${key}');
-  var response =
-      await http.get(url);
+  var response = await http.get(url);
   // ignore: prefer_typing_uninitialized_variables
   var data;
   try {
@@ -75,6 +90,7 @@ Future<List> autoPlace(String text) async {
 }
 
 Future<String> addPlace(
+    String mid,
     String id,
     TextEditingController name,
     TextEditingController description,
@@ -85,6 +101,7 @@ Future<String> addPlace(
   Uri url = Uri.parse(
       'https://bdtravel.comsciproject.net/buddy_travel/api/addPlace.php');
   var response = await http.post(url, body: {
+    'mid': mid,
     'id': id,
     'name': name.text,
     'description': description.text,
@@ -98,6 +115,39 @@ Future<String> addPlace(
   try {
     data = jsonDecode(response.body);
     print(data);
+  } catch (e) {
+    print(e);
+  }
+  return data;
+}
+
+Future<String> editPlace(
+    String mid,
+    String id,
+    TextEditingController name,
+    TextEditingController description,
+    String address,
+    String type,
+    String festival,
+    TextEditingController lat,
+    TextEditingController lng) async {
+  Uri url = Uri.parse(
+      'https://bdtravel.comsciproject.net/buddy_travel/api/edit_place.php');
+  var response = await http.post(url, body: {
+    'mid': mid,
+    'id': id,
+    'name': name.text,
+    'description': description.text,
+    'festival': festival,
+    'type': type,
+    'address': address,
+    'latitude': lat.text,
+    'longtitude': lng.text,
+  });
+  // ignore: prefer_typing_uninitialized_variables
+  var data;
+  try {
+    data = jsonDecode(response.body);
   } catch (e) {
     print(e);
   }
@@ -162,6 +212,25 @@ Future getPlaceID(String id) async {
   Uri url = Uri.parse(
       'https://bdtravel.comsciproject.net/buddy_travel/api/detailPlace.php');
   var response = await http.post(url, body: {'P_ID': id});
+  // ignore: prefer_typing_uninitialized_variables
+  var data;
+  try {
+    data = jsonDecode(response.body);
+  } catch (e) {
+    print(e);
+  }
+
+  if (data.toString().isEmpty) {
+    data = 'ไม่มีข้อมูล';
+  }
+
+  return data;
+}
+
+Future getHistoryPlace(String id) async {
+  Uri url = Uri.parse(
+      'https://bdtravel.comsciproject.net/buddy_travel/api/history_place.php');
+  var response = await http.post(url, body: {'id': id});
   // ignore: prefer_typing_uninitialized_variables
   var data;
   try {
