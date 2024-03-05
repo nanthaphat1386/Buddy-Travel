@@ -1,6 +1,4 @@
-import 'dart:ffi';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:image_picker/image_picker.dart';
@@ -51,15 +49,13 @@ class _AddReviewState extends State<AddReview> {
   }
 
   void selectImages() async {
-    if (imageFileList!.length == 5) {
+    if (imageFileList!.length > 5) {
       _dialogBuilderFullImage(context);
     } else {
       try {
         final List<XFile>? selectedImages = await imagePicker.pickMultiImage();
         if (selectedImages!.isNotEmpty) {
-          for (int i = 0; i < selectedImages.length; i++) {
-            imageFileList!.add(selectedImages[i]);
-          }
+          imageFileList!.addAll(selectedImages);
         }
         setState(() {});
       } catch (e) {}
@@ -341,7 +337,7 @@ class _EditReviewState extends State<EditReview> {
   }
 
   void selectImages() async {
-    if (imageFileList!.length == 5) {
+    if (imageFileList.length + imageFileListAdd!.length >= 5) {
       _dialogBuilderFullImage(context);
     } else {
       try {

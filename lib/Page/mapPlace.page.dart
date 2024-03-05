@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'package:http/http.dart' as http;
+import 'package:projectbdtravel/API/apiPlace.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class mapPlace extends StatefulWidget {
   const mapPlace({super.key});
@@ -23,6 +26,10 @@ class _mapPlaceState extends State<mapPlace> {
   late LocationData _userLocation;
   LatLng initialCameraPosition =
       const LatLng(36.865421209974606, -124.99604970216751);
+
+  String name = '';
+  String img = '';
+  String ID = '';
 
   Future<void> _getUserLocation() async {
     Location location = Location();
@@ -54,7 +61,7 @@ class _mapPlaceState extends State<mapPlace> {
         initialCameraPosition = LatLng(latitude!, longitude!);
         _controller
             .moveCamera(CameraUpdate.newLatLng(LatLng(latitude, longitude)));
-        getMeMarkers(latitude, longitude);
+        getMeMarkers("me", "Me", latitude, longitude);
         _onMapCreate(_controller);
       });
     } catch (e) {
@@ -66,6 +73,40 @@ class _mapPlaceState extends State<mapPlace> {
   void initState() {
     super.initState();
     _getLocation();
+    getProfile();
+  }
+
+  getProfile() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      setState(() {
+        img = prefs.getString('image').toString();
+        ID = prefs.getString('id').toString();
+        name = prefs.getString('fName').toString() +
+            ' ' +
+            prefs.getString('lName').toString();
+      });
+    } catch (e) {
+      print(e);
+    }
+    _getCheckinFriend();
+  }
+
+  Future<void> _getCheckinFriend() async {
+    try {
+      var fr = await getCheckinMap(ID);
+      for (int i = 0; i < fr.length; i++) {
+        print(double.parse(fr[i]["lng"]));
+        setState(() {
+          getMeMarkers(fr[i]["P_ID"], fr[i]["P_Name"],
+              double.parse(fr[i]["lat"]), double.parse(fr[i]["lng"]));
+        });
+      }
+      print(fr);
+      print(fr.runtimeType);
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future<void> _getLocation() async {
@@ -107,7 +148,7 @@ class _mapPlaceState extends State<mapPlace> {
         CameraPosition(target: initialCameraPosition, zoom: 12)));
   }
 
-  createMarker() {
+  createMarker() async {
     BitmapDescriptor.fromAssetImage(
             const ImageConfiguration(size: Size(3, 3)), 'img/accountMe.png')
         .then((icon) {
@@ -117,12 +158,10 @@ class _mapPlaceState extends State<mapPlace> {
     });
   }
 
-  final TextEditingController _searchPlace = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     double w = displayWidth(context);
-    double h = displayWidth(context) -
+    double h = displayHeight(context) -
         MediaQuery.of(context).padding.top -
         kToolbarHeight;
     return Scaffold(
@@ -135,60 +174,27 @@ class _mapPlaceState extends State<mapPlace> {
         body: Stack(
           children: [
             GoogleMap(
-              onTap: (LatLng latLng) {
-                markers.add(
-                    Marker(markerId: const MarkerId('mark'), position: latLng));
-                setState(() {});
-              },
+              onTap: (LatLng latLng) {},
               mapType: MapType.normal,
               markers: Set<Marker>.of(markers),
               initialCameraPosition:
                   CameraPosition(target: initialCameraPosition, zoom: 14),
               onMapCreated: _onMapCreate,
             ),
-            Positioned(
-              child: Padding(
-                padding:
-                    EdgeInsets.fromLTRB(w * 0.05, h * 0.25, w * 0.05, h * 0.10),
-                child: SizedBox(
-                  height: h * 0.2,
-                  child: TextFormField(
-                    cursorColor: Colors.black,
-                    style: const TextStyle(fontSize: 18),
-                    controller: _searchPlace,
-                    textCapitalization: TextCapitalization.words,
-                    decoration: InputDecoration(
-                        hintText: 'ค้นหาสถานที่',
-                        filled: true,
-                        fillColor: Color.fromARGB(162, 255, 255, 255),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15.0),
-                          borderSide: const BorderSide(),
-                        ),
-                        suffix: IconButton(
-                          onPressed: () {},
-                          icon: Icon(Icons.search, size: h * 0.1),
-                          enableFeedback: true,
-                        )),
-                    onChanged: (value) {},
-                  ),
-                ),
-              ),
-            ),
-            (markers.isNotEmpty)
-                ? Positioned(
-                    child: Align(
-                    alignment: FractionalOffset.bottomCenter,
-                    child: Container(
-                      height: h * 0.4,
-                      width: w,
-                      color: Colors.white,
-                      alignment: Alignment.bottomCenter,
-                      margin:
-                          EdgeInsets.fromLTRB(w * 0.05, 0, w * 0.05, h * 0.35),
-                    ),
-                  ))
-                : Container(),
+            // (markers.isNotEmpty)
+            //     ? Positioned(
+            //         child: Align(
+            //         alignment: FractionalOffset.bottomCenter,
+            //         child: Container(
+            //           height: h * 0.4,
+            //           width: w,
+            //           color: Colors.white,
+            //           alignment: Alignment.bottomCenter,
+            //           margin:
+            //               EdgeInsets.fromLTRB(w * 0.05, 0, w * 0.05, h * 0.35),
+            //         ),
+            //       ))
+            //     : Container(),
           ],
         ));
   }
@@ -206,17 +212,19 @@ class _mapPlaceState extends State<mapPlace> {
     setState(() {});
   }
 
-  getMeMarkers(double lat, double lng) {
+  getMeMarkers(String id, String name, double lat, double lng) {
+    // createMarker();
+    // markers.clear();
     createMarker();
-    markers.clear();
     markers.add(
       Marker(
-        markerId: const MarkerId("Search"),
-        position: initialCameraPosition,
-        infoWindow: const InfoWindow(title: 'New Search'),
+        markerId: MarkerId(id),
+        position: LatLng(lat, lng),
+        infoWindow: InfoWindow(title: name),
         icon: customIconMe,
       ),
     );
     setState(() {});
+    print(markers);
   }
 }

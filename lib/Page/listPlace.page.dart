@@ -6,8 +6,6 @@ import 'package:projectbdtravel/API/apiPlace.dart';
 import 'package:projectbdtravel/Page/addPlace.page.dart';
 import 'package:projectbdtravel/Page/detailPlace.page.dart';
 import 'package:projectbdtravel/Tools/responsive.tools.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:projectbdtravel/Tools/style.tools.dart';
 
 class listPlace extends StatefulWidget {
   const listPlace({super.key});
@@ -250,8 +248,8 @@ class _listPlaceState extends State<listPlace> {
                                                       Container(
                                                         child: Text(
                                                           Place[index]
-                                                              ['P_Name'].toString().length >= 25 ?   Place[index]
-                                                              ['P_Name'].toString().substring(0,22) + "..." :Place[index]
+                                                              ['P_Name'].toString().length >= 24 ?   Place[index]
+                                                              ['P_Name'].toString().substring(0,20) + "..." :Place[index]
                                                               ['P_Name'],
                                                           style: TextStyle(
                                                               color:

@@ -482,7 +482,7 @@ class _EditCheckinState extends State<EditCheckin> {
   }
 
   void selectImages() async {
-    if (imageFileList!.length == 5) {
+    if (imageFileList.length + imageFileListAdd!.length >= 5) {
       _dialogBuilderFullImage(context);
     } else {
       try {
